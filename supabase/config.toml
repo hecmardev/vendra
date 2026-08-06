@@ -1,0 +1,15 @@
+# Config mínima de Supabase CLI. Reemplazar project_id por el ref real.
+project_id = "vendra"
+
+[db]
+port = 54322
+
+[api]
+port = 54321
+
+[studio]
+port = 54323
+
+[storage]
+# Bucket para fotos de autos (crear tras `supabase start`).
+# El acceso se restringe por path/dealer_id vía políticas de storage.
