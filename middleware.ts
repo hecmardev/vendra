@@ -15,6 +15,10 @@ function isPlatformHost (host: string): boolean {
   if (process.env.NODE_ENV !== 'production') {
     return host === 'localhost' || host === '127.0.0.1'
   }
+  // En Vercel, cualquier host *.vercel.app es la PLATAFORMA: los dealers siempre
+  // usan su dominio propio (nunca un subdominio de vercel.app). Esto evita depender
+  // del match exacto contra una de las varias URLs que Vercel genera por deploy.
+  if (host.endsWith('.vercel.app')) return true
   const base = process.env.NEXT_PUBLIC_BASE_DOMAIN ?? 'vendra.app'
   return host === base || host === `www.${base}`
 }

@@ -68,6 +68,11 @@ Correr en orden si no están aplicadas (idempotentes):
 - **Vercel:** el wildcard `*.vendra.com.mx` y el uso comercial requieren **Vercel Pro**.
 - **`NEXT_PUBLIC_BASE_DOMAIN`** debe ser el dominio de plataforma o el middleware confunde
   plataforma con dealer.
+- **Paneles autenticados = `export const dynamic = 'force-dynamic'`** en su `layout.tsx`
+  (`app/admin/(panel)`, `app/dashboard/(panel)`). Si no, Next intenta prerender estático
+  y el guard de sesión lanza "No autorizado" → falla el build en Vercel.
+- **Next.js:** mantener una versión NO vulnerable. Vercel BLOQUEA el deploy si detecta
+  una versión con CVE ("Vulnerable version of Next.js detected"). Se subió 15.1.6 → 15.5.23.
 
 ## Credenciales (referencia — los valores reales van en `.env`, NO en git)
 - Dealer demo (dev): `dealer@demo.mx` / `Vendra1234!` (dominio `demo.localhost`).
