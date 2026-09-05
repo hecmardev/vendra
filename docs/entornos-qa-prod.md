@@ -61,11 +61,11 @@ limpia, con llaves que nunca han salido de Supabase.
 
 ## Fase 3 — Vercel: dos proyectos, un repo
 
-Dos proyectos importando el mismo repo (`vendra-prod`, `vendra-qa`), en vez de
+Dos proyectos importando el mismo repo (`vendra-prod`, `vendra-test`), en vez de
 asignar dominios a ramas dentro de un proyecto: el aislamiento de variables es
 total y el modelo mental es más simple.
 
-| Variable | vendra-prod | vendra-qa |
+| Variable | vendra-prod | vendra-test |
 |---|---|---|
 | Rama de producción | `main` | `test` |
 | `NEXT_PUBLIC_BASE_DOMAIN` | `vendra.com.mx` | `test.vendra.com.mx` |
