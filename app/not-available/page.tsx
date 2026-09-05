@@ -13,7 +13,7 @@ export const metadata = { title: 'Sitio no disponible — Vendra' }
  * localhost:3000; en prod, NEXT_PUBLIC_BASE_DOMAIN.
  */
 export default function NotAvailable () {
-  const base = process.env.NEXT_PUBLIC_BASE_DOMAIN ?? 'vendra.app'
+  const base = process.env.NEXT_PUBLIC_BASE_DOMAIN ?? 'vendra.com.mx'
   const vendraUrl = process.env.NODE_ENV === 'production'
     ? `https://${base}`
     : 'http://localhost:3000'

@@ -1,7 +1,7 @@
 # Checklist de deploy — Vendra (Next.js + Supabase + Vercel)
 
-Modelo: 1 dominio de plataforma (`vendra.app`) + subdominios por dealer
-(`demo.vendra.app`). El middleware identifica el tenant por hostname.
+Modelo: 1 dominio de plataforma (`vendra.com.mx`) + subdominios por dealer
+(`demo.vendra.com.mx`). El middleware identifica el tenant por hostname.
 
 ---
 
@@ -52,8 +52,16 @@ Para el primer demo: reusar el actual está bien.
 
 ## 3. Dominio
 
-- [ ] Comprar el dominio de plataforma (ej. `vendra.app`).
+- [x] **Comprado: `vendra.com.mx`** en Akky (NIC México) el 04/sep/2026, plazo de 1 año
+      → **expira el 04/sep/2027**. Renovación ~$241 MXN/año.
+- [ ] **Activar la auto-renovación** en el panel de Akky. Que el dominio se venza con
+      dealers en producción es el peor incidente posible: los storefronts dejan de resolver.
+- [ ] **2FA** en la cuenta de Akky y en el correo del registrante (`hecmardev@gmail.com`).
+      Ese correo es la llave de recuperación del dominio.
 - [ ] El DNS se configura DESDE Vercel (paso 4) — no necesitas tocarlo aún.
+
+> **El contacto del registrante NUNCA debe ser un correo `@vendra.com.mx`**: si el
+> dominio se vence o el DNS se rompe, pierdes el buzón con el que lo recuperarías.
 
 ---
 
@@ -68,7 +76,7 @@ Para el primer demo: reusar el actual está bien.
       | `NEXT_PUBLIC_SUPABASE_URL` | `https://xxxx.supabase.co` |
       | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `sb_publishable_…` |
       | `SUPABASE_SERVICE_ROLE_KEY` | `sb_secret_…` (⚠ secreto) |
-      | `NEXT_PUBLIC_BASE_DOMAIN` | `vendra.app` (tu dominio de plataforma) |
+      | `NEXT_PUBLIC_BASE_DOMAIN` | `vendra.com.mx` (tu dominio de plataforma) |
       | `PLATFORM_ADMIN_EMAILS` | tu correo de admin |
       | `RESEND_API_KEY` | `re_…` (opcional; sin esto no se envían emails de leads) |
 
@@ -76,8 +84,8 @@ Para el primer demo: reusar el actual está bien.
 
 - [ ] **Deploy**. Espera a que compile.
 - [ ] **Domains** (Settings → Domains):
-      - Agrega `vendra.app` y `www.vendra.app` → sigue las instrucciones de DNS que da Vercel.
-      - Agrega el **wildcard `*.vendra.app`** (⚠ requiere **Vercel Pro**) para que cualquier subdominio de dealer resuelva.
+      - Agrega `vendra.com.mx` y `www.vendra.com.mx` → sigue las instrucciones de DNS que da Vercel.
+      - Agrega el **wildcard `*.vendra.com.mx`** (⚠ requiere **Vercel Pro**) para que cualquier subdominio de dealer resuelva.
 
 ---
 
@@ -93,23 +101,23 @@ Estos scripts corren LOCAL pero apuntan a la Supabase que tengas en `.env`
       (ese correo debe estar en `PLATFORM_ADMIN_EMAILS` de Vercel)
 - [ ] **Crear el dealer demo con el subdominio de prod**:
       ```bash
-      pnpm dealer:create -- --name "AutosDemo" --domain demo.vendra.app --email dueno@demo.mx --password "ClaveDemo"
+      pnpm dealer:create -- --name "AutosDemo" --domain demo.vendra.com.mx --email dueno@demo.mx --password "ClaveDemo"
       ```
-- [ ] (Opcional) Autos de ejemplo: súbelos desde `demo.vendra.app/dashboard/inventario`
+- [ ] (Opcional) Autos de ejemplo: súbelos desde `demo.vendra.com.mx/dashboard/inventario`
       o adapta `scripts/seed-demo.mjs`.
 - [ ] **Resend (para emails de leads)**: verifica tu dominio en resend.com y pon
-      `RESEND_FROM="Vendra <leads@vendra.app>"` en Vercel. Sin verificar, solo llegan
+      `RESEND_FROM="Vendra <leads@vendra.com.mx>"` en Vercel. Sin verificar, solo llegan
       a tu propio correo.
 
 ---
 
 ## 6. Smoke test (verificar en producción)
 
-- [ ] `https://vendra.app` → landing de plataforma.
-- [ ] `https://vendra.app/admin` → login admin → lista de dealers.
-- [ ] `https://demo.vendra.app` → storefront del dealer (home, /autos, ficha).
-- [ ] `https://demo.vendra.app/dashboard` → login del dealer → panel con datos.
-- [ ] Enviar un lead desde `demo.vendra.app` (Apartar / contacto) → aparece en el panel
+- [ ] `https://vendra.com.mx` → landing de plataforma.
+- [ ] `https://vendra.com.mx/admin` → login admin → lista de dealers.
+- [ ] `https://demo.vendra.com.mx` → storefront del dealer (home, /autos, ficha).
+- [ ] `https://demo.vendra.com.mx/dashboard` → login del dealer → panel con datos.
+- [ ] Enviar un lead desde `demo.vendra.com.mx` (Apartar / contacto) → aparece en el panel
       y (si Resend está configurado) llega el email.
 - [ ] Subir una foto de auto → se ve en el storefront (Storage OK).
 
@@ -118,7 +126,7 @@ Estos scripts corren LOCAL pero apuntan a la Supabase que tengas en `.env`
 ## Notas / gotchas
 
 - **`NEXT_PUBLIC_BASE_DOMAIN`** es crítico: de él depende que el middleware distinga
-  plataforma (`vendra.app`) de dealer (`*.vendra.app`). Si está mal, todo se trata
+  plataforma (`vendra.com.mx`) de dealer (`*.vendra.com.mx`). Si está mal, todo se trata
   como dealer o como plataforma.
 - **Vercel Pro** hace falta para el wildcard de dominios y para uso comercial (un SaaS).
   Para un demo con 1-2 subdominios puntuales, Hobby puede alcanzar agregándolos a mano.

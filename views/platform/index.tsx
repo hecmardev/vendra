@@ -26,7 +26,7 @@ const PLANS = [
   { name: 'Pro', price: '$XX', tagline: 'Más herramientas para crecer', features: ['Todo lo de Base', 'Sección personalizada', 'Asistente de IA por WhatsApp', 'Soporte prioritario'], cta: 'Quiero Pro', highlight: true }
 ]
 
-/** Landing de la plataforma (vendra.com): atrae dealers a la plataforma. */
+/** Landing de la plataforma (vendra.com.mx): atrae dealers a la plataforma. */
 export function Landing () {
   return (
     <div className="flex min-h-dvh flex-col">
@@ -170,7 +170,7 @@ export function Landing () {
                 <h2 className="text-2xl font-bold tracking-tight md:text-3xl">¿Listo para tener tu página?</h2>
                 <p className="mx-auto mt-2 max-w-md text-primary-foreground/70">Escríbenos y te damos de alta. Sin permanencia.</p>
                 <div className="mt-6 flex flex-wrap justify-center gap-3">
-                  <Button asChild variant="cta" size="lg"><a href="mailto:hola@vendra.app">Solicitar acceso <ArrowRight className="h-4 w-4" /></a></Button>
+                  <Button asChild variant="cta" size="lg"><a href="mailto:hola@vendra.com.mx">Solicitar acceso <ArrowRight className="h-4 w-4" /></a></Button>
                 </div>
               </div>
             </div>

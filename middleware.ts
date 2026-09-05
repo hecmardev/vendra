@@ -8,7 +8,7 @@ function normalizeHost (host: string): string {
 }
 
 /**
- * ¿El host es el dominio de plataforma (vendra.com), no el de un dealer?
+ * ¿El host es el dominio de plataforma (vendra.com.mx), no el de un dealer?
  * En dev, `localhost`/`127.0.0.1` = plataforma; `*.localhost` = dealer demo.
  */
 function isPlatformHost (host: string): boolean {
@@ -19,13 +19,13 @@ function isPlatformHost (host: string): boolean {
   // usan su dominio propio (nunca un subdominio de vercel.app). Esto evita depender
   // del match exacto contra una de las varias URLs que Vercel genera por deploy.
   if (host.endsWith('.vercel.app')) return true
-  const base = process.env.NEXT_PUBLIC_BASE_DOMAIN ?? 'vendra.app'
+  const base = process.env.NEXT_PUBLIC_BASE_DOMAIN ?? 'vendra.com.mx'
   return host === base || host === `www.${base}`
 }
 
 /**
  * Bifurca por dominio:
- *   - Plataforma (vendra.com): reescribe a /plataforma/* (landing marketing) y
+ *   - Plataforma (vendra.com.mx): reescribe a /plataforma/* (landing marketing) y
  *     deja pasar /admin (superadmin) y /api.
  *   - Dealer (cualquier otro dominio): resuelve el tenant e inyecta headers;
  *     si es /dashboard valida sesión.

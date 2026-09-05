@@ -3,16 +3,16 @@
 Vendra sirve **dos tipos de sitio** desde el mismo proyecto Next.js, decididos por el
 **dominio** con el que entra el visitante.
 
-## 1. Dominio de plataforma (admin) — `vendra.com`
+## 1. Dominio de plataforma (admin) — `vendra.com.mx`
 
 Tu sitio de marketing para atraer dealers + tu administración.
 
 | Ruta | Qué es |
 |------|--------|
-| `vendra.com/` | Landing de la plataforma (qué es Vendra, beneficios) |
-| `vendra.com/precios` | Planes / precios |
-| `vendra.com/conviertete-en-dealer` | CTA para registrarse como vendedor |
-| `vendra.com/admin` | Panel superadmin (dar de alta dealers, feature flags, planes) |
+| `vendra.com.mx/` | Landing de la plataforma (qué es Vendra, beneficios) |
+| `vendra.com.mx/precios` | Planes / precios |
+| `vendra.com.mx/conviertete-en-dealer` | CTA para registrarse como vendedor |
+| `vendra.com.mx/admin` | Panel superadmin (dar de alta dealers, feature flags, planes) |
 
 ## 2. Dominio de dealer — p. ej. `hectorauto.com`
 
@@ -32,12 +32,12 @@ La **tienda** de cada vendedor. Mismo código, datos por `dealer_id`.
 
 ```
 host = hostname de la request
-if (host === vendra.com / www.vendra.com)   → SITIO PLATAFORMA
+if (host === vendra.com.mx / www.vendra.com.mx)   → SITIO PLATAFORMA
 else                                          → resolver dealer por dominio → STOREFRONT
 ```
 
 - **Plataforma:** el middleware reescribe internamente `/*` → `/plataforma/*`
-  (la URL pública sigue siendo `vendra.com/`). Las páginas viven en `app/plataforma/`.
+  (la URL pública sigue siendo `vendra.com.mx/`). Las páginas viven en `app/plataforma/`.
   `/admin` se maneja aparte (protegido por rol superadmin).
 - **Dealer:** se queda en las rutas raíz actuales (`/`, `/catalogo`, …), inyectando
   `x-dealer-id` como hoy. Si el dominio no está registrado → `/not-available`.
@@ -52,10 +52,10 @@ app/
 ├─ page.tsx                 # HOME del DEALER (storefront) — dominios de dealer
 ├─ catalogo/ auto/ contacto/ acerca-de/   # storefront del dealer
 ├─ dashboard/               # panel del dealer
-├─ plataforma/              # SITIO DE PLATAFORMA (vendra.com) — reescrito por middleware
+├─ plataforma/              # SITIO DE PLATAFORMA (vendra.com.mx) — reescrito por middleware
 │  ├─ page.tsx              # landing
 │  ├─ precios/  conviertete-en-dealer/
-├─ admin/                   # panel superadmin (vendra.com/admin)
+├─ admin/                   # panel superadmin (vendra.com.mx/admin)
 └─ not-available/           # dominio no registrado
 ```
 
