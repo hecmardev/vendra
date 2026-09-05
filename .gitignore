@@ -30,3 +30,7 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+# entornos (nunca commitear llaves de prod)
+.env.prod
+.env.qa

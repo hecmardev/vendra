@@ -48,10 +48,16 @@ Correr en orden si no están aplicadas (idempotentes):
 - `0001_init.sql` — esquema base (aplicada).
 - `0002_dealer_features_write.sql` — política de escritura de módulos. **(incluida en 0003)**
 - `0003_soft_delete.sql` — columnas is_active/record_status/deleted_at + RLS + índices.
-- `0004_lead_notes.sql` — columna `notes` en leads. **Verificar si ya está aplicada.**
+- `0004_lead_notes.sql` — columna `notes` en leads. **(aplicada — verificado 04/sep/2026)**
 
 ## Decisiones clave (criterios del proyecto)
-- **Dominio:** `vendra.com.mx` (Akky, ~$249 MXN/año). Se conserva la marca "Vendra".
+- **Dos ambientes con bases separadas:** QA (`test.vendra.com.mx`) y producción
+  (`vendra.com.mx`), cada uno con su proyecto de Supabase y de Vercel. La base
+  actual pasa a ser QA. Ver `docs/entornos-qa-prod.md`.
+- **Dominio:** `vendra.com.mx` — **comprado en Akky el 04/sep/2026** ($249 MXN el primer
+  año, renovación ~$241; expira **04/sep/2027**). Se conserva la marca "Vendra".
+  Los dealers de prueba van en subdominios (`demo.vendra.com.mx`); el wildcard
+  `*.vendra.com.mx` requiere Vercel Pro, sin él se agrega cada subdominio a mano.
 - **Login de dealers:** solo en su propio dominio (no en el host de plataforma).
 - **Borrado:** lógico e inmutable (no se restauran registros `deleted`; para "recuperar"
   se crea uno nuevo). Ver `docs/plan-borrado-logico.md`.
