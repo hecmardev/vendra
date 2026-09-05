@@ -40,4 +40,4 @@ if (created.error) {
   console.log(`✓ Admin creado: ${email}`)
 }
 
-console.log(`\nAgrega el correo a PLATFORM_ADMIN_EMAILS en .env.local y entra en /admin/login`)
+console.log(`\nAsegurate de que el correo este en PLATFORM_ADMIN_EMAILS (.env local y Vercel;\nen Vercel hace falta redeploy para que tome). Luego entra en /admin/login`)
