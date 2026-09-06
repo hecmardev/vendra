@@ -33,17 +33,23 @@ limpia, con llaves que nunca han salido de Supabase.
 ## Fase 1 — Limpiar la base actual (pasa a ser QA)
 
 1. **Backup**: dashboard → *Download backups*. Lo que sigue es irreversible.
-2. **Borrado duro**: correr `scripts/cleanup-qa.sql` en el SQL Editor. Borra hijos
-   primero para no depender de si las FK conservan `ON DELETE CASCADE` (la
-   migración `0003` tocó constraints y no conviene asumir).
-3. **Vaciar el bucket** `car-photos` de objetos huérfanos (Storage → seleccionar todo).
-4. **Sembrar lo mínimo**:
+2. **Borrado duro**: lo hace `pnpm qa:seed -- --reset` (paso 4). Si prefieres
+   verlo correr en el SQL Editor, `scripts/cleanup-qa.sql` hace lo mismo a mano.
+3. **Vaciar el bucket**: también lo cubre `--reset`.
+4. **Sembrar**: un solo comando deja el ambiente completo (admin, dealer con su
+   usuario, 6 autos con foto y 3 leads):
    ```bash
-   node --env-file=.env scripts/create-admin.mjs --email admin@vendra.mx --password "…"
-   pnpm dealer:create -- --name "AutosDemo" --domain demo.test.vendra.com.mx \
-     --email dueno@demo.mx --password "…"
+   pnpm qa:seed -- --reset
    ```
-   El correo del admin debe estar en `PLATFORM_ADMIN_EMAILS`.
+   `--reset` borra Storage, tablas y usuarios antes de sembrar. Sin la bandera es
+   idempotente: reemplaza autos y leads y respeta lo demás. Los correos y
+   contraseñas salen de las variables `QA_*` del `.env` (ver `.env.example`);
+   nunca se hardcodean en el script.
+
+   Trae un seguro: `--reset` aborta si `QA_DEALER_DOMAIN` no contiene "test",
+   para no apuntarle a producción por error. `--force` lo salta.
+
+   El correo del admin debe estar en `PLATFORM_ADMIN_EMAILS` o el script avisa.
 
 > **Borrado duro, no soft delete.** El panel hace baja lógica y deja la fila viva;
 > aquí queremos la tabla vacía de verdad. `dealers_domain_active_uk` es un índice

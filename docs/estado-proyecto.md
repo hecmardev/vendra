@@ -51,6 +51,8 @@ Correr en orden si no están aplicadas (idempotentes):
 - `0004_lead_notes.sql` — columna `notes` en leads. **(aplicada — verificado 04/sep/2026)**
 
 ## Decisiones clave (criterios del proyecto)
+- **Mapa de vistas del dealer:** ver `docs/vistas-dealer.md` (storefront, dashboard,
+  módulos y lo que hay detrás).
 - **Dos ambientes con bases separadas:** QA (`test.vendra.com.mx`) y producción
   (`vendra.com.mx`), cada uno con su proyecto de Supabase y de Vercel. La base
   actual pasa a ser QA. Ver `docs/entornos-qa-prod.md`.

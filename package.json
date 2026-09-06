@@ -9,7 +9,8 @@
     "lint": "next lint",
     "ts:check": "tsc --noEmit",
     "db:types": "supabase gen types typescript --local > types/database.ts",
-    "dealer:create": "tsx --env-file=.env scripts/create-dealer.ts"
+    "dealer:create": "tsx --env-file=.env scripts/create-dealer.ts",
+    "qa:seed": "node --env-file=.env scripts/seed-qa.mjs"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.1.1",
