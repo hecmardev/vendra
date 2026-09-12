@@ -58,7 +58,7 @@ const CARS = [
 
 const LEADS = [
   { name: 'Laura Sandoval', phone: '5551234567', email: 'laura@example.mx', message: '¿Sigue disponible? Me interesa verlo el sábado.', source: 'web_form', status: 'nuevo', carSlug: 'mazda-cx-5-grand-touring-2022' },
-  { name: 'Miguel Ortega', phone: '5559876543', email: 'miguel@example.mx', message: 'Quiero saber si aceptan auto a cuenta.', source: 'apartar', status: 'contactado', carSlug: 'ford-ranger-xlt-4x4-2023' },
+  { name: 'Miguel Ortega', phone: '5559876543', email: 'miguel@example.mx', message: 'Quiero saber si aceptan auto a cuenta.', source: 'apartado', status: 'contactado', carSlug: 'ford-ranger-xlt-4x4-2023' },
   { name: 'Paty Ruiz', phone: '5555550000', email: null, message: 'Información de financiamiento por favor.', source: 'web_form', status: 'nuevo', carSlug: null }
 ]
 
