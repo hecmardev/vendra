@@ -49,6 +49,10 @@ Correr en orden si no están aplicadas (idempotentes):
 - `0002_dealer_features_write.sql` — política de escritura de módulos. **(incluida en 0003)**
 - `0003_soft_delete.sql` — columnas is_active/record_status/deleted_at + RLS + índices.
 - `0004_lead_notes.sql` — columna `notes` en leads. **(aplicada — verificado 04/sep/2026)**
+- `0005_domain_uniqueness.sql` — el dominio se libera al eliminar, no al suspender.
+  **Pendiente de aplicar.**
+- `0006_dealer_features_public_read.sql` — el storefront puede leer los flags del
+  dealer. **Pendiente de aplicar.**
 
 ## Decisiones clave (criterios del proyecto)
 - **Mapa de vistas del dealer:** ver `docs/vistas-dealer.md` (storefront, dashboard,

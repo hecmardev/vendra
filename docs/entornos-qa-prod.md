@@ -59,7 +59,7 @@ limpia, con llaves que nunca han salido de Supabase.
 ## Fase 2 — Crear producción desde cero
 
 1. Proyecto nuevo en Supabase, **misma región** que QA.
-2. Las 4 migraciones en orden en el SQL Editor: `0001` → `0002` → `0003` → `0004`.
+2. Las 6 migraciones en orden en el SQL Editor, de `0001` a `0006`.
 3. `node --env-file=.env.prod.local scripts/setup-storage.mjs` (crea `car-photos`).
 4. Admin + dealer `demo.vendra.com.mx` con los mismos dos scripts de la Fase 1.
 5. Las llaves nuevas van **del dashboard directo a Vercel**. No pasan por el `.env`

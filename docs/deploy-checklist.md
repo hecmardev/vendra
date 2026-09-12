@@ -7,7 +7,7 @@ Modelo: 1 dominio de plataforma (`vendra.com.mx`) + subdominios por dealer
 
 ## 0. Pre-deploy (código) — dejar listo antes de subir
 
-- [ ] **Migraciones aplicadas en Supabase** (SQL Editor): `0002`, `0003`, `0004`.
+- [ ] **Migraciones aplicadas en Supabase** (SQL Editor): `0002` a `0006`.
       Verifica que existan las columnas/políticas (soft delete, notas, features).
 - [ ] **Build local OK** — con el `pnpm dev` DETENIDO:
       ```bash
@@ -40,7 +40,7 @@ Dos opciones:
 - **Reusar el proyecto actual** (rápido, para el demo). Ya tiene migraciones,
   bucket `car-photos` y datos. Contra: mezcla datos de dev y prod.
 - **Proyecto nuevo de prod** (más limpio, recomendado para lanzar de verdad).
-  Implica: correr las 4 migraciones, `node --env-file=.env scripts/setup-storage.mjs`,
+  Implica: correr las 6 migraciones, `node --env-file=.env scripts/setup-storage.mjs`,
   y crear admin + dealer en ese proyecto.
 
 Para el primer demo: reusar el actual está bien.

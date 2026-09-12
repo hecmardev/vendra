@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { formatPrice, estimateMonthly } from '@/helpers/format'
 import { getTenant } from '@/lib/tenant'
 import { getCarBySlug, listCars } from '@/services/cars'
+import { getDealerFeatures } from '@/services/dealers'
 import { DEMO_DEALER } from '@/constants/dealer'
 import type { Car } from '@/interfaces/car'
 import { Breadcrumb } from './components/Breadcrumb'
@@ -47,6 +48,9 @@ function vehicleJsonLd (car: Car, baseUrl: string) {
 export async function CarDetail ({ slug }: { slug: string }) {
   const tenant = await getTenant()
   const car = tenant ? await getCarBySlug(tenant.dealerId, slug) : null
+  // Módulos contratados por el dealer (Ajustes → Módulos). Lectura pública
+  // desde la 0006; sin flags, nada opcional se muestra.
+  const features = tenant ? await getDealerFeatures(tenant.dealerId) : {}
 
   if (!car) {
     return (
@@ -93,7 +97,7 @@ export async function CarDetail ({ slug }: { slug: string }) {
                 </section>
               )}
               <Specs car={car} />
-              <FinancingCalc price={car.price} />
+              {features.financiamiento && <FinancingCalc price={car.price} />}
               <Faq />
             </div>
 

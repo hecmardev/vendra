@@ -64,9 +64,11 @@ Feature flags por dealer, en la tabla `dealer_features`:
 | `seccion_personalizada` | Sección personalizada |
 | `ia_whatsapp` | Asistente de IA por WhatsApp |
 
-> **Pendiente conocido:** los flags se guardan pero **todavía no gatean nada** en
-> el storefront. Prenderlos no cambia lo que ve el comprador. Está en Tier 1 de
-> `estado-proyecto.md`.
+> **Estado de los módulos.** `financiamiento` ya gatea: la calculadora de la
+> ficha del auto solo aparece si está prendido (migración `0006` + lectura en
+> `views/carDetail`). Los otros dos siguen sin gatear **porque la función no
+> existe todavía**: no hay sección personalizada ni asistente de WhatsApp que
+> mostrar u ocultar.
 
 ## 3. Lo que hay detrás
 
