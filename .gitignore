@@ -34,3 +34,6 @@ yarn-error.log*
 # entornos (nunca commitear llaves de prod)
 .env.prod
 .env.qa
+
+# salidas de herramientas (diagramas, reportes)
+Claude outputs/

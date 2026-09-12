@@ -124,11 +124,13 @@ export async function createDealerAccount (input: NewDealerInput): Promise<{ dea
   const domain = input.domain.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/$/, '')
   const email = input.email.trim().toLowerCase()
 
+  // Un dealer suspendido CONSERVA su dominio: solo la baja lógica lo libera
+  // (mismo criterio que el índice `dealers_domain_live_uk` de la 0005).
   const { data: clash, error: clashErr } = await supabase
     .from('dealers')
     .select('id')
     .eq('domain', domain)
-    .eq('is_active', true)
+    .neq('record_status', 'deleted')
     .maybeSingle()
   if (clashErr) throw clashErr
   if (clash) throw new Error(`El dominio ${domain} ya está en uso por otro dealer.`)
@@ -140,28 +142,38 @@ export async function createDealerAccount (input: NewDealerInput): Promise<{ dea
     .single()
   if (dErr) throw dErr
 
-  let userId: string | undefined
-  const created = await supabase.auth.admin.createUser({
-    email,
-    password: input.password,
-    email_confirm: true
-  })
-  if (created.error && !/already|registered|exists/i.test(created.error.message)) throw created.error
-  userId = created.data?.user?.id
+  // A partir de aquí ya existe la fila del dealer, pero crear el usuario y el
+  // profile son llamadas aparte que no comparten transacción con el insert. Si
+  // alguna falla, se borra el dealer recién creado: sin esa compensación queda
+  // ocupando el dominio y el siguiente intento choca con "ya está en uso".
+  try {
+    let userId: string | undefined
+    const created = await supabase.auth.admin.createUser({
+      email,
+      password: input.password,
+      email_confirm: true
+    })
+    if (created.error && !/already|registered|exists/i.test(created.error.message)) throw created.error
+    userId = created.data?.user?.id
 
-  if (!userId) {
-    const { data, error } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 })
-    if (error) throw error
-    userId = data.users.find((u) => u.email?.toLowerCase() === email)?.id
+    if (!userId) {
+      const { data, error } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 })
+      if (error) throw error
+      userId = data.users.find((u) => u.email?.toLowerCase() === email)?.id
+    }
+    if (!userId) throw new Error(`No se pudo crear ni encontrar el usuario ${email}`)
+
+    const { error: pErr } = await supabase
+      .from('profiles')
+      .upsert({ user_id: userId, dealer_id: dealer.id, role: 'owner' })
+    if (pErr) throw pErr
+
+    return { dealerId: dealer.id }
+  } catch (err) {
+    // Borrado duro, no baja lógica: la fila acaba de nacer y no tiene hijos.
+    await supabase.from('dealers').delete().eq('id', dealer.id)
+    throw err
   }
-  if (!userId) throw new Error(`No se pudo crear ni encontrar el usuario ${email}`)
-
-  const { error: pErr } = await supabase
-    .from('profiles')
-    .upsert({ user_id: userId, dealer_id: dealer.id, role: 'owner' })
-  if (pErr) throw pErr
-
-  return { dealerId: dealer.id }
 }
 
 export interface DealerAdminPatch {
@@ -177,11 +189,25 @@ export async function updateDealerAsAdmin (dealerId: string, patch: DealerAdminP
   await requirePlatformAdmin()
   const supabase = createAdminClient()
 
+  const domain = patch.domain.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/$/, '')
+
+  // Mismo criterio que el alta, excluyéndose a sí mismo. Sin esto, mover un
+  // dealer a un dominio ocupado revienta con el error crudo del índice único.
+  const { data: clash, error: clashErr } = await supabase
+    .from('dealers')
+    .select('id')
+    .eq('domain', domain)
+    .neq('record_status', 'deleted')
+    .neq('id', dealerId)
+    .maybeSingle()
+  if (clashErr) throw clashErr
+  if (clash) throw new Error(`El dominio ${domain} ya está en uso por otro dealer.`)
+
   const { error } = await supabase
     .from('dealers')
     .update({
       name: patch.name.trim(),
-      domain: patch.domain.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/$/, ''),
+      domain,
       whatsapp_number: patch.whatsappNumber.trim() || null,
       meta_pixel_id: patch.metaPixelId.trim() || null,
       ga4_measurement_id: patch.ga4MeasurementId.trim() || null
