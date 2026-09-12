@@ -10,7 +10,8 @@
     "ts:check": "tsc --noEmit",
     "db:types": "supabase gen types typescript --local > types/database.ts",
     "dealer:create": "tsx --env-file=.env scripts/create-dealer.ts",
-    "qa:seed": "node --env-file=.env scripts/seed-qa.mjs"
+    "qa:seed": "node --env-file=.env scripts/seed-qa.mjs",
+    "db:migrate": "node --env-file=.env scripts/migrate.mjs"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.1.1",
