@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import ResolveDealerMiddleware from '@/middlewares/ResolveDealerMiddleware'
 import DashboardAuthMiddleware, { isDashboardScope } from '@/middlewares/DashboardAuthMiddleware'
 import { DEALER_ID_HEADER, DEALER_DOMAIN_HEADER } from '@/lib/tenant'
+import { isIndexable } from '@/lib/seo'
 
 function normalizeHost (host: string): string {
   return host.split(':')[0].toLowerCase()
@@ -31,6 +32,14 @@ function isPlatformHost (host: string): boolean {
  *     si es /dashboard valida sesión.
  */
 export default async function middleware (req: NextRequest) {
+  const res = await route(req)
+  // robots.txt pide no rastrear; esta cabecera pide además no indexar, que es lo
+  // que saca de los buscadores lo que ya hubieran alcanzado a guardar.
+  if (!isIndexable()) res.headers.set('x-robots-tag', 'noindex, nofollow')
+  return res
+}
+
+async function route (req: NextRequest) {
   const host = normalizeHost(req.headers.get('host') ?? '')
   const { pathname } = req.nextUrl
 
