@@ -17,6 +17,21 @@ export interface PlatformAdmin {
   email: string
 }
 
+/**
+ * Normaliza lo que el admin escribe en "Dominio" y rechaza lo que no es un
+ * hostname. Sin esto el panel aceptaba, por ejemplo, un correo como dominio y
+ * creaba un dealer activo con un dominio que nunca iba a resolver.
+ * Los dominios con ñ o acentos se capturan en punycode (xn--...).
+ */
+function normalizeDomain (raw: string): string {
+  const domain = raw.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, '')
+  const valid = /^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/.test(domain)
+  if (!valid) {
+    throw new Error(`"${raw.trim()}" no es un dominio válido. Debe verse como autosmx.com o demo.vendra.com.mx.`)
+  }
+  return domain
+}
+
 function allowedEmails (): string[] {
   return (process.env.PLATFORM_ADMIN_EMAILS ?? '')
     .split(',')
@@ -121,7 +136,7 @@ export async function createDealerAccount (input: NewDealerInput): Promise<{ dea
   await requirePlatformAdmin()
   const supabase = createAdminClient()
 
-  const domain = input.domain.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/$/, '')
+  const domain = normalizeDomain(input.domain)
   const email = input.email.trim().toLowerCase()
 
   // Un dealer suspendido CONSERVA su dominio: solo la baja lógica lo libera
@@ -163,9 +178,34 @@ export async function createDealerAccount (input: NewDealerInput): Promise<{ dea
     }
     if (!userId) throw new Error(`No se pudo crear ni encontrar el usuario ${email}`)
 
+    // `profiles` tiene como llave `user_id`: un usuario administra UN solo
+    // dealer. Si el correo ya es dueño de un dealer vivo, el upsert de abajo le
+    // movería el perfil y ese dealer se quedaría sin dueño. Se rechaza antes.
+    const { data: owned, error: ownErr } = await supabase
+      .from('profiles')
+      .select('dealers(name)')
+      .eq('user_id', userId)
+      .eq('is_active', true)
+      .maybeSingle()
+    if (ownErr) throw ownErr
+    if (owned) {
+      const current = (owned as any).dealers?.name ?? 'otro dealer'
+      throw new Error(`El correo ${email} ya administra "${current}". Usa otro correo.`)
+    }
+
+    // Si el correo era de un dealer dado de baja, el perfil existe pero muerto:
+    // hay que revivirlo explícitamente. Un upsert solo con user_id/dealer_id/role
+    // conservaba record_status = 'deleted' y el dueño no podía entrar al panel.
     const { error: pErr } = await supabase
       .from('profiles')
-      .upsert({ user_id: userId, dealer_id: dealer.id, role: 'owner' })
+      .upsert({
+        user_id: userId,
+        dealer_id: dealer.id,
+        role: 'owner',
+        is_active: true,
+        record_status: 'active',
+        deleted_at: null
+      })
     if (pErr) throw pErr
 
     return { dealerId: dealer.id }
@@ -189,7 +229,7 @@ export async function updateDealerAsAdmin (dealerId: string, patch: DealerAdminP
   await requirePlatformAdmin()
   const supabase = createAdminClient()
 
-  const domain = patch.domain.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/$/, '')
+  const domain = normalizeDomain(patch.domain)
 
   // Mismo criterio que el alta, excluyéndose a sí mismo. Sin esto, mover un
   // dealer a un dominio ocupado revienta con el error crudo del índice único.

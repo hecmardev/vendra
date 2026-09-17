@@ -6,13 +6,13 @@ import { formatPrice, estimateMonthly } from '@/helpers/format'
 import { getTenant } from '@/lib/tenant'
 import { getCarBySlug, listCars } from '@/services/cars'
 import { getDealerFeatures } from '@/services/dealers'
+import { getBusiness } from '@/lib/business'
 import { DEMO_DEALER } from '@/constants/dealer'
 import type { Car } from '@/interfaces/car'
 import { Breadcrumb } from './components/Breadcrumb'
 import { ReserveDialog } from './components/ReserveDialog'
 import { Gallery } from './components/Gallery'
 import { Specs } from './components/Specs'
-import { Faq } from './components/Faq'
 
 /** Origen público del dealer (para URLs absolutas del JSON-LD). */
 function dealerOrigin (domain: string): string {
@@ -51,11 +51,12 @@ export async function CarDetail ({ slug }: { slug: string }) {
   // Módulos contratados por el dealer (Ajustes → Módulos). Lectura pública
   // desde la 0006; sin flags, nada opcional se muestra.
   const features = tenant ? await getDealerFeatures(tenant.dealerId) : {}
+  const { name: businessName } = await getBusiness()
 
   if (!car) {
     return (
       <div className="flex min-h-dvh flex-col">
-        <Navbar />
+        <Navbar dealerName={businessName} />
         <main className="container flex flex-1 flex-col items-center justify-center gap-4 py-20 text-center">
           <h1 className="text-2xl font-bold">Auto no encontrado</h1>
           <Button asChild variant="cta"><Link href="/autos">Ver autos</Link></Button>
@@ -77,7 +78,7 @@ export async function CarDetail ({ slug }: { slug: string }) {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <Navbar />
+      <Navbar dealerName={businessName} />
       <main className="flex-1">
         <div className="container py-6">
           <Breadcrumb car={car} baseUrl={baseUrl} />
@@ -98,7 +99,12 @@ export async function CarDetail ({ slug }: { slug: string }) {
               )}
               <Specs car={car} />
               {features.financiamiento && <FinancingCalc price={car.price} />}
-              <Faq />
+              {/*
+                Aquí iba <Faq />, con preguntas de maqueta que prometían en
+                nombre del dealer cosas que él nunca dijo ("revisión de 150
+                puntos", garantías). Vuelve cuando la FAQ sea editable por
+                dealer, junto con el equipamiento por auto.
+              */}
             </div>
 
             {/* Panel de conversión (sticky) */}

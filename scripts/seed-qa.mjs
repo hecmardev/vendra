@@ -4,6 +4,7 @@
  *
  *   node --env-file=.env scripts/seed-qa.mjs            # siembra (idempotente)
  *   node --env-file=.env scripts/seed-qa.mjs --reset    # borra TODO y siembra
+ *   node --env-file=.env scripts/seed-qa.mjs --local    # + dealer demo.localhost
  *
  * Idempotente: sin --reset, reemplaza los autos y leads del dealer pero respeta
  * lo demás. Con --reset deja la base como recién migrada.
@@ -15,9 +16,26 @@
  */
 import { createClient } from '@supabase/supabase-js'
 
+const FLAGS = ['reset', 'local', 'force']
 const has = (f) => process.argv.includes(`--${f}`)
+
+// Una bandera mal escrita no puede pasar desapercibida: este script REEMPLAZA
+// los autos y leads del dealer, así que un `--locla` que se ignore en silencio
+// se lleva por delante datos de prueba que costó trabajo generar.
+// El `--` suelto lo agrega pnpm como separador; no es una bandera.
+const desconocidas = process.argv
+  .slice(2)
+  .filter((a) => a !== '--' && a.startsWith('--') && !FLAGS.includes(a.slice(2)))
+if (desconocidas.length) {
+  throw new Error(
+    `Bandera no reconocida: ${desconocidas.join(', ')}\n` +
+    `Las válidas son: ${FLAGS.map((f) => '--' + f).join(', ')}`
+  )
+}
+
 const RESET = has('reset')
 const FORCE = has('force')
+const LOCAL = has('local')
 
 const cfg = {
   adminEmail: process.env.QA_ADMIN_EMAIL ?? 'admin@vendra.com.mx',
@@ -25,7 +43,11 @@ const cfg = {
   dealerName: process.env.QA_DEALER_NAME ?? 'AutosDemo',
   dealerDomain: process.env.QA_DEALER_DOMAIN ?? 'demo.test.vendra.com.mx',
   dealerEmail: process.env.QA_DEALER_EMAIL ?? 'demo@vendra.com.mx',
-  dealerPassword: process.env.QA_DEALER_PASSWORD
+  dealerPassword: process.env.QA_DEALER_PASSWORD,
+  // Dealer solo para desarrollo local (--local). *.localhost lo resuelve el
+  // navegador a 127.0.0.1 sin tocar /etc/hosts.
+  localDomain: process.env.QA_LOCAL_DOMAIN ?? 'demo.localhost',
+  localEmail: process.env.QA_LOCAL_EMAIL ?? 'local@vendra.com.mx'
 }
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -109,6 +131,85 @@ async function upsertUser (email, password) {
   return user.id
 }
 
+// --- Siembra de un dealer ----------------------------------------------------
+
+/**
+ * Deja un dealer completo: fila, usuario dueño, autos con foto y leads. Los
+ * autos y leads se reemplazan, así que volver a correrlo no duplica nada.
+ */
+async function seedDealer ({ name, domain, email, password }) {
+  // No se puede upsert por dominio: la migración 0003 cambió el UNIQUE de
+  // `domain` por un índice parcial (where is_active) y ON CONFLICT no aplica
+  // sobre índices parciales. Se busca primero y se inserta o actualiza.
+  const fields = { domain, name, whatsapp_number: '5215555555555' }
+  const { data: existing } = await admin
+    .from('dealers')
+    .select('id')
+    .eq('domain', domain)
+    .eq('is_active', true)
+    .maybeSingle()
+
+  const q = existing
+    ? admin.from('dealers').update(fields).eq('id', existing.id)
+    : admin.from('dealers').insert(fields)
+  const { data: dealer, error: dErr } = await q.select().single()
+  if (dErr) throw dErr
+  console.log(`✓ Dealer: ${dealer.name} (${dealer.domain})`)
+
+  // Usuario dueño + profile. Se revive el perfil por si el correo venía de un
+  // dealer dado de baja: un upsert sin estos campos heredaría record_status
+  // 'deleted' y el dueño no podría entrar al panel.
+  const userId = await upsertUser(email, password)
+  const { error: pErr } = await admin
+    .from('profiles')
+    .upsert({
+      user_id: userId,
+      dealer_id: dealer.id,
+      role: 'owner',
+      is_active: true,
+      record_status: 'active',
+      deleted_at: null
+    })
+  if (pErr) throw pErr
+  console.log(`✓ Usuario del dealer: ${email}`)
+
+  await admin.from('cars').delete().eq('dealer_id', dealer.id)
+  const carsBySlug = {}
+  for (const c of CARS) {
+    const { img, ...carFields } = c
+    const { data: car, error } = await admin
+      .from('cars')
+      .insert({ dealer_id: dealer.id, ...carFields })
+      .select()
+      .single()
+    if (error) throw error
+    carsBySlug[c.slug] = car.id
+    const { error: iErr } = await admin
+      .from('car_images')
+      .insert({ car_id: car.id, dealer_id: dealer.id, storage_path: photo(img), position: 0 })
+    if (iErr) throw iErr
+  }
+  console.log(`✓ ${CARS.length} autos con foto`)
+
+  await admin.from('leads').delete().eq('dealer_id', dealer.id)
+  for (const l of LEADS) {
+    const { carSlug, ...leadFields } = l
+    const { error } = await admin
+      .from('leads')
+      .insert({ dealer_id: dealer.id, car_id: carSlug ? carsBySlug[carSlug] : null, ...leadFields })
+    if (error) throw error
+  }
+  console.log(`✓ ${LEADS.length} leads`)
+
+  // Módulo de financiamiento prendido, para que la ficha muestre la calculadora.
+  const { error: fErr } = await admin
+    .from('dealer_features')
+    .upsert({ dealer_id: dealer.id, key: 'financiamiento', enabled: true })
+  if (fErr) throw fErr
+
+  return dealer
+}
+
 // --- Ejecución ---------------------------------------------------------------
 
 console.log(`Supabase: ${url}`)
@@ -120,7 +221,7 @@ if (RESET) {
   console.log()
 }
 
-// 1) Admin de plataforma. Debe estar en PLATFORM_ADMIN_EMAILS para entrar a /admin.
+// Admin de plataforma. Debe estar en PLATFORM_ADMIN_EMAILS para entrar a /admin.
 await upsertUser(cfg.adminEmail, cfg.adminPassword)
 console.log(`✓ Admin: ${cfg.adminEmail}`)
 
@@ -129,64 +230,29 @@ if (!allowed.includes(cfg.adminEmail.toLowerCase())) {
   console.log(`  ⚠ ${cfg.adminEmail} NO está en PLATFORM_ADMIN_EMAILS — /admin lo va a rechazar`)
 }
 
-// 2) Dealer. No se puede upsert por dominio: la migración 0003 cambió el UNIQUE
-//    de `domain` por un índice parcial (where is_active) y ON CONFLICT no aplica
-//    sobre índices parciales. Se busca primero y se inserta o actualiza.
-const fields = { domain: cfg.dealerDomain, name: cfg.dealerName, whatsapp_number: '5215555555555' }
-const { data: existing } = await admin
-  .from('dealers')
-  .select('id')
-  .eq('domain', cfg.dealerDomain)
-  .eq('is_active', true)
-  .maybeSingle()
+await seedDealer({
+  name: cfg.dealerName,
+  domain: cfg.dealerDomain,
+  email: cfg.dealerEmail,
+  password: cfg.dealerPassword
+})
 
-const q = existing
-  ? admin.from('dealers').update(fields).eq('id', existing.id)
-  : admin.from('dealers').insert(fields)
-const { data: dealer, error: dErr } = await q.select().single()
-if (dErr) throw dErr
-console.log(`✓ Dealer: ${dealer.name} (${dealer.domain})`)
-
-// 3) Usuario del dealer + profile que lo liga.
-const dealerUserId = await upsertUser(cfg.dealerEmail, cfg.dealerPassword)
-const { error: pErr } = await admin
-  .from('profiles')
-  .upsert({ user_id: dealerUserId, dealer_id: dealer.id, role: 'owner' })
-if (pErr) throw pErr
-console.log(`✓ Usuario del dealer: ${cfg.dealerEmail}`)
-
-// 4) Autos. Se reemplazan para que la corrida sea idempotente.
-await admin.from('cars').delete().eq('dealer_id', dealer.id)
-const carsBySlug = {}
-for (const c of CARS) {
-  const { img, ...fields } = c
-  const { data: car, error } = await admin
-    .from('cars')
-    .insert({ dealer_id: dealer.id, ...fields })
-    .select()
-    .single()
-  if (error) throw error
-  carsBySlug[c.slug] = car.id
-  const { error: iErr } = await admin
-    .from('car_images')
-    .insert({ car_id: car.id, dealer_id: dealer.id, storage_path: photo(img), position: 0 })
-  if (iErr) throw iErr
+// Dealer extra para desarrollo local. Los navegadores resuelven cualquier
+// *.localhost a 127.0.0.1 solos, así que no hace falta tocar /etc/hosts ni
+// perder acceso al dominio desplegado.
+if (LOCAL) {
+  console.log()
+  await seedDealer({
+    name: `${cfg.dealerName} (local)`,
+    domain: cfg.localDomain,
+    email: cfg.localEmail,
+    password: cfg.dealerPassword
+  })
 }
-console.log(`✓ ${CARS.length} autos con foto`)
-
-// 5) Leads.
-await admin.from('leads').delete().eq('dealer_id', dealer.id)
-for (const l of LEADS) {
-  const { carSlug, ...fields } = l
-  const { error } = await admin
-    .from('leads')
-    .insert({ dealer_id: dealer.id, car_id: carSlug ? carsBySlug[carSlug] : null, ...fields })
-  if (error) throw error
-}
-console.log(`✓ ${LEADS.length} leads`)
 
 console.log(`
 Listo. Entra con:
   Plataforma  https://${(process.env.NEXT_PUBLIC_BASE_DOMAIN ?? 'test.vendra.com.mx')}/admin/login  -> ${cfg.adminEmail}
-  Dealer      https://${cfg.dealerDomain}/dashboard/login  -> ${cfg.dealerEmail}
-`)
+  Dealer      https://${cfg.dealerDomain}/dashboard/login  -> ${cfg.dealerEmail}` +
+(LOCAL ? `
+  Local       http://${cfg.localDomain}:3000/dashboard/login  -> ${cfg.localEmail}` : '') + '\n')

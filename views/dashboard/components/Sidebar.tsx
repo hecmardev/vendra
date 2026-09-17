@@ -8,7 +8,7 @@ import { logoutAction } from '@/app/dashboard/login/actions'
 
 const NAV = [
   { href: '/dashboard', label: 'Inicio', icon: Home, exact: true },
-  { href: '/dashboard/inventario', label: 'Inventario', icon: LayoutGrid },
+  { href: '/dashboard/inventario', label: 'Autos', icon: LayoutGrid },
   { href: '/dashboard/leads', label: 'Leads', icon: Users },
   { href: '/dashboard/contenido', label: 'Contenido', icon: FileText },
   { href: '/dashboard/ajustes', label: 'Ajustes', icon: Settings }

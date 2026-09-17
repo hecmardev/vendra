@@ -7,6 +7,7 @@ import { AboutHero } from './components/AboutHero'
 import { Story } from './components/Story'
 import { Timeline } from './components/Timeline'
 import { Values } from './components/Values'
+import { getBusiness } from '@/lib/business'
 
 /**
  * Vista "Acerca de": la carta de presentación del vendedor (historia,
@@ -14,9 +15,10 @@ import { Values } from './components/Values'
  */
 export async function About () {
   const { about } = await getContent()
+  const { name: businessName } = await getBusiness()
   return (
     <div className="flex min-h-dvh flex-col">
-      <Navbar overlay />
+      <Navbar overlay dealerName={businessName} />
       <main className="flex-1">
         <AboutHero />
         <Story />

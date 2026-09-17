@@ -154,7 +154,7 @@ export function InventoryView ({ cars: initialCars }: { cars: Car[] }) {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Inventario</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Autos</h1>
           <p className="text-sm text-muted-foreground">{cars.length} autos publicados</p>
         </div>
         <Button asChild variant="cta" className="gap-2">

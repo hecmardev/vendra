@@ -1,6 +1,15 @@
 /**
- * Equipamiento por categoría y FAQ de la ficha (demo). En producción vendrían
- * del auto (campos/checklist por unidad) y de una FAQ por modelo/dealer.
+ * Catálogo de referencia para dos funciones PENDIENTES. Nada de esto se
+ * renderiza hoy.
+ *
+ * Se usaba como si fuera dato real: la ficha pintaba las mismas 16
+ * características y las mismas promesas ("revisión de 150 puntos") para todos
+ * los autos de todos los dealers. Se dejó de mostrar porque afirmaba cosas
+ * falsas sobre la mercancía, en nombre del dealer.
+ *
+ * SPEC_CATEGORIES sirve como catálogo de opciones para cuando el equipamiento
+ * sea un campo de `cars` con casillas en el formulario de autos. CAR_FAQ, para
+ * cuando la FAQ sea editable por dealer.
  */
 
 export interface SpecCategory {

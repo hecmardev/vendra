@@ -17,7 +17,7 @@ export async function Contact () {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <Navbar overlay />
+      <Navbar overlay dealerName={business.name} />
       <main className="flex-1">
         <PageHeader title={contact.title} subtitle={contact.subtitle} image={headerImage || undefined} />
 
