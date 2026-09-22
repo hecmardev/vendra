@@ -74,7 +74,7 @@ export function AdminDealersView ({ dealers }: { dealers: DealerStats[] }) {
 
       <div className="grid gap-3 sm:grid-cols-3">
         <Kpi icon={Building2} label={`Dealers (${totals.active} activos)`} value={totals.dealers} />
-        <Kpi icon={Car} label="Autos publicados" value={totals.cars} />
+        <Kpi icon={Car} label="Autos en inventario" value={totals.cars} />
         <Kpi icon={Users} label="Leads totales" value={totals.leads} />
       </div>
 

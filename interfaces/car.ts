@@ -1,4 +1,4 @@
-export type CarStatus = 'disponible' | 'vendido' | 'apartado'
+export type CarStatus = 'borrador' | 'disponible' | 'vendido' | 'apartado'
 
 /** Modelo de auto para la UI (alineado a la tabla `cars`). */
 export interface Car {

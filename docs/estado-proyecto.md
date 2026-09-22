@@ -55,6 +55,8 @@ Correr en orden si no están aplicadas (idempotentes):
   dealer. **Pendiente de aplicar.**
 
 ## Decisiones clave (criterios del proyecto)
+- **Pendientes abiertos:** ver `docs/pendientes.md` — hallazgos de la validación de
+  QA y decisiones de producto sin resolver.
 - **Mapa de vistas del dealer:** ver `docs/vistas-dealer.md` (storefront, dashboard,
   módulos y lo que hay detrás).
 - **Dos ambientes con bases separadas:** QA (`test.vendra.com.mx`) y producción

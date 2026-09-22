@@ -17,12 +17,14 @@ import { deleteCarAction, setCarStatusAction } from '@/app/dashboard/(panel)/inv
 import type { Car, CarStatus } from '@/interfaces/car'
 
 const STATUS_VARIANT: Record<CarStatus, 'secondary' | 'cta' | 'outline'> = {
+  borrador: 'outline',
   disponible: 'secondary',
   apartado: 'cta',
   vendido: 'outline'
 }
 const FILTERS: Array<{ key: 'todos' | CarStatus; label: string }> = [
   { key: 'todos', label: 'Todos' },
+  { key: 'borrador', label: 'Borradores' },
   { key: 'disponible', label: 'Disponibles' },
   { key: 'apartado', label: 'Apartados' },
   { key: 'vendido', label: 'Vendidos' }

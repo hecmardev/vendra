@@ -12,7 +12,7 @@ import type { Car } from '@/interfaces/car'
 const TRANSMISSIONS = ['Automática', 'Manual', 'CVT']
 const FUELS = ['Gasolina', 'Diésel', 'Híbrido', 'Eléctrico']
 const BODY_TYPES = ['SUV', 'Sedán', 'Pickup', 'Hatchback', 'Coupé']
-const STATUSES = ['disponible', 'apartado', 'vendido']
+const STATUSES = ['borrador', 'disponible', 'apartado', 'vendido']
 
 function Field ({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
   return (
@@ -39,7 +39,9 @@ function Select ({ value, onChange, options }: { value: string; onChange: (v: st
 export function CarForm ({ car }: { car?: Car }) {
   const isEdit = Boolean(car)
   const [form, setForm] = useState<Partial<Car>>(
-    car ?? { status: 'disponible', transmission: 'Automática', fuel: 'Gasolina', bodyType: 'SUV' }
+    // Un auto nuevo nace en borrador: no sale al sitio hasta que el dealer lo
+    // publique, para que no se vea a medio llenar mientras lo captura.
+    car ?? { status: 'borrador', transmission: 'Automática', fuel: 'Gasolina', bodyType: 'SUV' }
   )
   const [error, setError] = useState('')
   const [uploading, setUploading] = useState(0)

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Calculator } from 'lucide-react'
-import { formatPrice } from '@/helpers/format'
+import { formatPrice, FINANCIAMIENTO } from '@/helpers/format'
 import { cn } from '@/lib/utils'
 
 const PLAZOS = [12, 24, 36, 48, 60, 72]
@@ -19,9 +19,11 @@ function monthlyPayment (principal: number, annualRatePct: number, months: numbe
  * bancaria — estima la mensualidad para orientar al cliente y generar el lead.
  */
 export function FinancingCalc ({ price }: { price: number }) {
-  const [downPct, setDownPct] = useState(20)
-  const [months, setMonths] = useState(48)
-  const [rate, setRate] = useState(13)
+  // Arranca con los mismos supuestos que el "Desde $X/mes" de la ficha, para
+  // que la primera cifra que ve el cliente aquí sea la que ya leyó arriba.
+  const [downPct, setDownPct] = useState(FINANCIAMIENTO.downRate * 100)
+  const [months, setMonths] = useState(FINANCIAMIENTO.months)
+  const [rate, setRate] = useState(FINANCIAMIENTO.annualRate * 100)
 
   const down = Math.round((price * downPct) / 100)
   const principal = price - down

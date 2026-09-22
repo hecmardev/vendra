@@ -13,12 +13,33 @@ export function formatMileage (km: number): string {
 }
 
 /**
+ * Supuestos del financiamiento de referencia. Viven aquí y en un solo lugar:
+ * el "Desde $X/mes" de la ficha y la calculadora los comparten, porque si cada
+ * uno arranca con su propio plazo el cliente ve dos mensualidades distintas
+ * para el mismo auto en la misma página.
+ *
+ * TODO(producto): deberían ser configurables por dealer — cada lote negocia
+ * distinto con su financiera. Ver docs/pendientes.md.
+ */
+export const FINANCIAMIENTO = {
+  /** Enganche, como fracción del precio. */
+  downRate: 0.2,
+  /** Plazo en meses. */
+  months: 60,
+  /** Tasa anual, como fracción. */
+  annualRate: 0.13
+}
+
+/**
  * Estimación simple de pago mensual (solo referencia, sin integración bancaria).
- * Enganche 20%, plazo 60 meses, tasa anual fija de referencia.
  */
 export function estimateMonthly (
   price: number,
-  { downRate = 0.2, months = 60, annualRate = 0.13 } = {}
+  {
+    downRate = FINANCIAMIENTO.downRate,
+    months = FINANCIAMIENTO.months,
+    annualRate = FINANCIAMIENTO.annualRate
+  } = {}
 ): number {
   const principal = price * (1 - downRate)
   const r = annualRate / 12

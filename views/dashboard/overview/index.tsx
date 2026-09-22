@@ -17,7 +17,7 @@ export async function OverviewView () {
   const nuevos = leads.filter((l) => l.status === 'nuevo').length
 
   const kpis = [
-    { icon: Car, label: 'Autos publicados', value: cars.length },
+    { icon: Car, label: 'Autos en inventario', value: cars.length },
     { icon: CheckCircle2, label: 'Disponibles', value: disponibles },
     { icon: Users, label: 'Leads totales', value: leads.length },
     { icon: Sparkles, label: 'Leads nuevos', value: nuevos }
