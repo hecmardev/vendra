@@ -154,9 +154,48 @@ opciones quedó en ese mismo archivo como referencia.
 
 ---
 
+### El correo de acceso de un dealer no se puede cambiar desde el panel
+
+`updateDealerAsAdmin` solo acepta nombre, dominio, WhatsApp, Pixel y GA4. El
+campo *Correo* del formulario existe únicamente en el alta, porque es el usuario
+de Supabase Auth.
+
+Cambiarlo después obliga a entrar al dashboard de Supabase → Authentication →
+Users. Es un campo, pero rompe la promesa de que el admin se opera desde el
+panel — y se necesita cada vez que un dealer arranca con un correo provisional
+o cambia el suyo.
+
+Agregarlo al formulario de edición implica tocar `auth.admin.updateUserById`
+además del `update` de la tabla.
+
+### El middleware no tolera el `www` de un dealer
+
+`ResolveDealerMiddleware` busca el hostname **exacto** en `dealers.domain`. Si un
+dealer se registra con `sudominio.com` y un visitante llega a
+`www.sudominio.com`, no hay coincidencia y se sirve `/not-available`.
+
+Con el dominio de plataforma no pasa: `isPlatformHost` acepta el base y su
+`www`. Para dealers no hay equivalente.
+
+Hoy se compensa configurando en Vercel que el `www` redirija a la raíz, pero eso
+depende de que quien dé de alta al dealer se acuerde — y el default de Vercel es
+justo el contrario: redirige la raíz al `www`.
+
+El arreglo natural es intentar la búsqueda quitando el `www.` cuando la primera
+falla. Así el dealer queda protegido aunque el DNS esté configurado al revés.
+
 ## 4. Operación
 
-- **Reset de contraseña autoservicio** para dealers: hoy solo el admin puede.
+- **El dealer no puede administrar su propia cuenta.** Su panel no tiene sección
+  de cuenta: no puede cambiar su correo de acceso ni su contraseña. El campo
+  *Correo* de Ajustes es el de contacto del negocio, otra cosa.
+
+  Consecuencia: un dealer que olvide su contraseña **tiene que llamar**. Y el
+  "olvidé mi contraseña" tampoco sirve, porque el correo de acceso puede no ser
+  un buzón real — al primer dealer se le dio uno `@vendra.com.mx`.
+
+  Con tres dealers se resuelve por WhatsApp. Con quince es soporte que se come
+  el margen.
 - **`sitemap.xml`** por dealer. `robots.txt` ya existe y depende de
   `ALLOW_INDEXING`; el sitemap no.
 - **Optimización de imágenes**: `next/image` no se usa en ningún archivo del

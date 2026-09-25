@@ -27,7 +27,11 @@ export function Reveal ({
       className={className}
       initial={{ opacity: 0, y }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.2 }}
+      // `some` = basta con que asome cualquier parte. Con un umbral por
+      // porcentaje (antes 0.2), un bloque más alto que la pantalla no puede
+      // cumplirlo nunca y se queda invisible para siempre: le pasó al catálogo
+      // con 13 autos, donde el 20% de la grilla superaba el alto del viewport.
+      viewport={{ once: true, amount: 'some' }}
       transition={{ duration: 0.5, delay, ease: [0.16, 1, 0.3, 1] }}
     >
       {children}

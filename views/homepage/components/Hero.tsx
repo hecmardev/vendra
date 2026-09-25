@@ -1,8 +1,6 @@
 import Link from 'next/link'
-import { Search } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Reveal } from '@/components/motion/Reveal'
+import { HeroSearch } from './HeroSearch'
 import { getContent } from '@/lib/content'
 
 /**
@@ -52,20 +50,7 @@ export async function Hero () {
 
         {/* Barra de búsqueda = CTA (claro, contrasta sobre el hero oscuro) */}
         <Reveal delay={0.24} className="w-full max-w-xl">
-          <form
-            action="/autos"
-            className="flex w-full items-center gap-2 rounded-xl border bg-card p-2 text-foreground shadow-lg shadow-black/20"
-          >
-            <div className="flex flex-1 items-center gap-2 pl-2">
-              <Search className="h-5 w-5 shrink-0 text-muted-foreground" />
-              <Input
-                name="q"
-                placeholder="Marca, modelo o palabra clave…"
-                className="border-0 shadow-none focus-visible:ring-0"
-              />
-            </div>
-            <Button type="submit" variant="cta" size="lg">Buscar</Button>
-          </form>
+          <HeroSearch />
         </Reveal>
 
         <Reveal delay={0.32}>
