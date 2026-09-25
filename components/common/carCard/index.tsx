@@ -9,7 +9,10 @@ import type { Car } from '@/interfaces/car'
 /** Tarjeta de auto para el catálogo y destacados. Enlaza a la ficha /autos/[slug]. */
 export default function CarCard ({ car }: { car: Car }) {
   const monthly = estimateMonthly(car.price)
-  const sold = car.status !== 'disponible'
+  // No es "vendido": desde la 0008 el sitio público también muestra apartados,
+  // y un apartado no está vendido. Es "no se puede comprar ahora mismo", que es
+  // lo que atenúa el precio y saca el badge.
+  const unavailable = car.status !== 'disponible'
 
   return (
     <Link href={`/autos/${car.slug}`} className="group block">
@@ -34,7 +37,7 @@ export default function CarCard ({ car }: { car: Car }) {
           <span className="absolute left-3 top-3">
             <Badge variant="secondary" className="shadow-sm">{car.bodyType}</Badge>
           </span>
-          {sold && (
+          {unavailable && (
             <span className="absolute right-3 top-3">
               <Badge variant="cta" className="capitalize shadow-sm">{car.status}</Badge>
             </span>
@@ -57,7 +60,7 @@ export default function CarCard ({ car }: { car: Car }) {
           </div>
 
           {/* Precio */}
-          <div className={cn('flex items-end justify-between border-t pt-3', sold && 'opacity-70')}>
+          <div className={cn('flex items-end justify-between border-t pt-3', unavailable && 'opacity-70')}>
             <div>
               <p className="text-lg font-bold tracking-tight">{formatPrice(car.price)}</p>
               <p className="text-xs text-muted-foreground">

@@ -4,13 +4,13 @@ import { CarCard } from '@/components/common'
 import { Reveal } from '@/components/motion/Reveal'
 import { getContent } from '@/lib/content'
 import { getTenant } from '@/lib/tenant'
-import { listCars } from '@/services/cars'
+import { listPublicCars } from '@/services/cars'
 
 /** Autos destacados del dealer (datos reales de Supabase). */
 export async function Featured () {
   const { sections } = await getContent()
   const tenant = await getTenant()
-  const cars = tenant ? (await listCars(tenant.dealerId)).slice(0, 6) : []
+  const cars = tenant ? (await listPublicCars(tenant.dealerId)).slice(0, 4) : []
   if (cars.length === 0) return null
 
   return (
@@ -21,11 +21,16 @@ export async function Featured () {
           Ver todo <ArrowRight className="h-4 w-4" />
         </Link>
       </div>
-      {/* Carrusel: scroll horizontal con snap (swipe en móvil, scroll en desktop) */}
+      {/* Carrusel solo en móvil, donde el swipe es natural y la card cortada se
+          lee como "hay más". De sm en adelante es grilla: en desktop el scroll
+          horizontal no tiene barra ni flechas, así que la última card cortada
+          solo parecía un desborde. En lg son 4 columnas para que los 4 autos
+          quepan en una sola fila; el catálogo usa 3 porque ahí las cards son
+          el contenido, no un adelanto. */}
       <Reveal>
-        <div className="-mx-5 flex snap-x snap-mandatory gap-5 overflow-x-auto px-5 pb-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="-mx-5 flex snap-x snap-mandatory gap-5 overflow-x-auto px-5 pb-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4">
           {cars.map((car) => (
-            <div key={car.id} className="w-[280px] shrink-0 snap-start sm:w-[320px]">
+            <div key={car.id} className="w-[280px] shrink-0 snap-start sm:w-auto">
               <CarCard car={car} />
             </div>
           ))}

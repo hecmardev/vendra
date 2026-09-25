@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { formatPrice, estimateMonthly } from '@/helpers/format'
 import { getTenant } from '@/lib/tenant'
-import { getCarBySlug, listCars } from '@/services/cars'
+import { getCarBySlug, listPublicCars } from '@/services/cars'
 import { getDealerFeatures } from '@/services/dealers'
 import { getBusiness } from '@/lib/business'
 import { DEMO_DEALER } from '@/constants/dealer'
@@ -68,7 +68,7 @@ export async function CarDetail ({ slug }: { slug: string }) {
 
   const monthly = estimateMonthly(car.price)
   const gallery = car.images.length ? car.images : []
-  const others = tenant ? await listCars(tenant.dealerId) : []
+  const others = tenant ? await listPublicCars(tenant.dealerId) : []
   const similar = others
     .filter((c) => c.id !== car.id && c.bodyType === car.bodyType)
     .concat(others.filter((c) => c.id !== car.id && c.bodyType !== car.bodyType))

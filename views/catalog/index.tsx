@@ -1,7 +1,7 @@
 import { Navbar, Footer, PageHeader } from '@/components/common'
 import { getTenant } from '@/lib/tenant'
 import { getContent } from '@/lib/content'
-import { listCars } from '@/services/cars'
+import { listPublicCars } from '@/services/cars'
 import { CatalogProvider, type CatalogFilters } from './states/CatalogProvider'
 import { CatalogBody } from './components/CatalogBody'
 import { getBusiness } from '@/lib/business'
@@ -12,7 +12,7 @@ import { getBusiness } from '@/lib/business'
  */
 export async function Catalog ({ initial }: { initial?: Partial<CatalogFilters> }) {
   const tenant = await getTenant()
-  const cars = tenant ? await listCars(tenant.dealerId) : []
+  const cars = tenant ? await listPublicCars(tenant.dealerId) : []
   const { headerImage } = await getContent()
   const { name: businessName } = await getBusiness()
 

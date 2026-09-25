@@ -43,16 +43,48 @@ function rowToCar (row: any): Car {
 }
 
 /**
- * Catálogo público de un dealer. SIEMPRE se filtra por dealer_id (aislamiento
- * por query). La RLS pública solo expone autos `disponible` con la anon key.
+ * Estatus que se muestran en el storefront. ESTA es la decisión de display y
+ * vive solo aquí: agregar o quitar uno es editar este arreglo, sin migración.
+ *
+ * El apartado entra a propósito: se cae seguido, y mientras esté visible junta
+ * interesados para cuando se libere. `vendido` queda fuera por ahora — es una
+ * decisión de producto abierta en docs/pendientes.md, no una restricción.
+ *
+ * `borrador` no depende de este arreglo: lo bloquea la RLS (migración 0008) y no
+ * puede salir aunque alguien lo agregue aquí por error. Esa es la diferencia
+ * entre lo que se decide y lo que no se negocia.
+ */
+const PUBLIC_STATUSES = ['disponible', 'apartado']
+
+/**
+ * Autos de un dealer tal como los ve SU PANEL: todos, en cualquier estatus.
+ * SIEMPRE se filtra por dealer_id (aislamiento por query).
  */
 export async function listCars (dealerId: string, filters: CatalogFilters = {}): Promise<Car[]> {
+  return queryCars(dealerId, filters, false)
+}
+
+/**
+ * Autos de un dealer tal como los ve un VISITANTE (ver `PUBLIC_STATUSES`).
+ *
+ * El filtro de estatus va explícito aunque la RLS ya lo aplique. Dejárselo solo
+ * a la RLS hacía que el storefront cambiara según quién lo mirara: el dealer con
+ * su sesión abierta veía sus borradores y apartados en su propia portada y en el
+ * catálogo, y no tenía manera de saber qué estaba publicado de verdad.
+ */
+export async function listPublicCars (dealerId: string, filters: CatalogFilters = {}): Promise<Car[]> {
+  return queryCars(dealerId, filters, true)
+}
+
+async function queryCars (dealerId: string, filters: CatalogFilters, publicOnly: boolean): Promise<Car[]> {
   const supabase = await createClient()
   let query = supabase
     .from('cars')
     .select('*, car_images(*)')
     .eq('dealer_id', dealerId)
     .eq('is_active', true) // oculta los dados de baja (record_status='deleted')
+
+  if (publicOnly) query = query.in('status', PUBLIC_STATUSES)
 
   if (filters.brand) query = query.eq('brand', filters.brand)
   if (filters.year) query = query.eq('year', filters.year)
@@ -79,6 +111,14 @@ export async function getCarById (dealerId: string, carId: string): Promise<Car 
   return data ? rowToCar(data) : null
 }
 
+/**
+ * Ficha pública de un auto por slug. Lleva el mismo filtro de estatus que
+ * `listPublicCars`: el dealer, fuera de su panel, tiene que ver su sitio igual
+ * que lo ve un visitante. Sin esto, la URL directa de un borrador le abría solo
+ * a él y le hacía creer que ya estaba publicado.
+ *
+ * El panel usa `getCarById`, que sí ve todos los estatus.
+ */
 export async function getCarBySlug (dealerId: string, slug: string): Promise<Car | null> {
   const supabase = await createClient()
   const { data, error } = await supabase
@@ -87,6 +127,7 @@ export async function getCarBySlug (dealerId: string, slug: string): Promise<Car
     .eq('dealer_id', dealerId)
     .eq('slug', slug)
     .eq('is_active', true)
+    .in('status', PUBLIC_STATUSES)
     .maybeSingle()
   if (error) throw error
   return data ? rowToCar(data) : null

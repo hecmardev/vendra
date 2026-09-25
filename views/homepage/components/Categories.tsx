@@ -14,7 +14,7 @@ const CATEGORIES = [
 export async function Categories () {
   const { sections } = await getContent()
   return (
-    <section className="container py-14">
+    <section className="container pt-14">
       <h2 className="mb-6 text-xl font-bold tracking-tight">{sections.categoriesTitle}</h2>
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {CATEGORIES.map(({ label, icon: Icon }, i) => (

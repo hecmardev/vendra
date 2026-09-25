@@ -3,7 +3,7 @@ import { Car, Phone, Mail, MapPin, Clock, MessageCircle, LogIn } from 'lucide-re
 import { getContent } from '@/lib/content'
 import { getBusiness } from '@/lib/business'
 import { getTenant } from '@/lib/tenant'
-import { listCars } from '@/services/cars'
+import { listPublicCars } from '@/services/cars'
 import { formatPrice } from '@/helpers/format'
 
 const CATEGORIES = ['SUV', 'Sedán', 'Pickup', 'Hatchback']
@@ -15,7 +15,7 @@ export default async function Footer ({ dealerName }: { dealerName?: string }) {
   const { footer } = await getContent()
   const business = await getBusiness()
   const tenant = await getTenant()
-  const latest = tenant ? (await listCars(tenant.dealerId)).slice(0, 4) : []
+  const latest = tenant ? (await listPublicCars(tenant.dealerId)).slice(0, 4) : []
   const name = dealerName ?? business.name
   const wa = `https://wa.me/${business.whatsapp.replace(/[^\d]/g, '')}`
 
