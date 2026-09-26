@@ -15,12 +15,12 @@ export async function Hero () {
       {/* Fondo: imagen con overlay oscuro. Para usar video, reemplaza el <img> por:
           <video autoPlay muted loop playsInline className="h-full w-full object-cover" src="/hero.mp4" /> */}
       <div aria-hidden className="absolute inset-0">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?w=1600&h=900&fit=crop&q=80"
-          alt=""
-          className="h-full w-full object-cover"
-        />
+        {/* La foto la pone el dealer desde Contenido → Inicio. Si la quita, el
+            hero queda sobre el color de marca, que también se ve bien. */}
+        {hero.image && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={hero.image} alt="" className="h-full w-full object-cover" />
+        )}
         <div className="absolute inset-0 bg-gradient-to-b from-primary/85 via-primary/80 to-primary/95" />
       </div>
 

@@ -1,20 +1,25 @@
 import { Check } from 'lucide-react'
 import { Reveal } from '@/components/motion/Reveal'
+import { cn } from '@/lib/utils'
 import { getContent } from '@/lib/content'
 
 /** Historia del negocio + compromisos que dan confianza. */
 export async function Story () {
   const { about } = await getContent()
   return (
-    <section className="container grid grid-cols-1 gap-10 py-16 md:grid-cols-2 md:items-center">
-      <Reveal className="order-2 aspect-[4/3] overflow-hidden rounded-2xl border bg-muted shadow-sm md:order-1">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="https://images.unsplash.com/photo-1550355291-bbee04a92027?w=800&h=600&fit=crop&q=80"
-          alt="Nuestro negocio"
-          className="h-full w-full object-cover"
-        />
-      </Reveal>
+    <section className={cn('container grid grid-cols-1 gap-10 py-16 md:items-center', about.storyImage && 'md:grid-cols-2')}>
+      {/* Sin foto no se pinta el hueco: la historia pasa a ocupar el ancho
+          completo, que se lee mejor que una caja gris vacía al lado. */}
+      {about.storyImage && (
+        <Reveal className="order-2 aspect-[4/3] overflow-hidden rounded-2xl border bg-muted shadow-sm md:order-1">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={about.storyImage}
+            alt="Nuestro negocio"
+            className="h-full w-full object-cover"
+          />
+        </Reveal>
+      )}
 
       <Reveal delay={0.1} className="order-1 space-y-4 md:order-2">
         <span className="text-sm font-bold uppercase tracking-wide text-cta">{about.storyEyebrow}</span>

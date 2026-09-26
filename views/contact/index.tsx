@@ -20,7 +20,7 @@ export async function Contact () {
     <div className="flex min-h-dvh flex-col">
       <Navbar overlay dealerName={business.name} />
       <main className="flex-1">
-        <PageHeader title={contact.title} subtitle={contact.subtitle} image={headerImage || undefined} />
+        <PageHeader title={contact.title} subtitle={contact.subtitle} image={contact.image || headerImage || undefined} />
 
         <div className="container grid grid-cols-1 gap-10 py-10 lg:grid-cols-2">
           {/* Info + mapa */}

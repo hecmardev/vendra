@@ -31,6 +31,86 @@ function Field ({ label, children }: { label: string; children: React.ReactNode 
   )
 }
 
+/**
+ * Campo de imagen: sube el archivo, guarda su URL en el contenido y muestra la
+ * vista previa con opción de quitarla.
+ *
+ * Cada instancia lleva su propio `ref` y su propio estado de subida — con uno
+ * compartido, subir en una pestaña habría puesto "Subiendo…" en las otras.
+ *
+ * La URL solo queda guardada al dar Guardar cambios, igual que el resto del
+ * contenido: el archivo ya está en Storage, pero el contenido no.
+ */
+function ImageField ({
+  label,
+  hint,
+  value,
+  onChange,
+  onError
+}: {
+  label: string
+  hint: string
+  value: string
+  onChange: (url: string) => void
+  onError: (msg: string) => void
+}) {
+  const ref = useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = useState(false)
+
+  const pick = async (file: File | null | undefined) => {
+    if (!file) return
+    onError('')
+    setUploading(true)
+    const fd = new FormData()
+    fd.append('file', file)
+    const res = await uploadHeaderImageAction(fd)
+    if (res.error) onError(res.error)
+    else if (res.url) onChange(res.url)
+    setUploading(false)
+    if (ref.current) ref.current.value = ''
+  }
+
+  return (
+    <Field label={label}>
+      {value
+        ? (
+          <div className="group relative h-32 w-full max-w-md overflow-hidden rounded-lg border bg-muted">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={value} alt="" className="h-full w-full object-cover" />
+            <button
+              type="button"
+              title="Quitar imagen"
+              onClick={() => onChange('')}
+              className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          )
+        : (
+          <button
+            type="button"
+            onClick={() => ref.current?.click()}
+            disabled={uploading}
+            className="flex h-32 w-full max-w-md flex-col items-center justify-center gap-1 rounded-lg border border-dashed text-muted-foreground transition-colors hover:border-cta hover:text-cta disabled:opacity-60"
+          >
+            {uploading
+              ? <><Loader2 className="h-6 w-6 animate-spin" /><span className="text-xs">Subiendo…</span></>
+              : <><ImagePlus className="h-6 w-6" /><span className="text-xs">Subir imagen</span></>}
+          </button>
+          )}
+      <input
+        ref={ref}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/avif"
+        hidden
+        onChange={(e) => { void pick(e.target.files?.[0]) }}
+      />
+      <p className="text-xs text-muted-foreground">{hint}</p>
+    </Field>
+  )
+}
+
 function Area ({ value, onChange, rows = 3 }: { value: string; onChange: (v: string) => void; rows?: number }) {
   return (
     <textarea
@@ -77,27 +157,11 @@ export function ContentView ({ initial }: { initial: SiteContent }) {
   const [tab, setTab] = useState<TabKey>('marca')
   const [error, setError] = useState('')
   const [saved, setSaved] = useState(false)
-  const [uploading, setUploading] = useState(false)
   const [pending, startTransition] = useTransition()
-  const headerFileRef = useRef<HTMLInputElement>(null)
 
   /** Aplica una mutación sobre una copia del contenido. */
   const set = (fn: (d: SiteContent) => void) =>
     setC((prev) => { const d = structuredClone(prev); fn(d); return d })
-
-  /** Sube la imagen de cabecera y guarda su URL en el contenido. */
-  const onPickHeaderImage = async (file: File | null | undefined) => {
-    if (!file) return
-    setError('')
-    setUploading(true)
-    const fd = new FormData()
-    fd.append('file', file)
-    const res = await uploadHeaderImageAction(fd)
-    if (res.error) setError(res.error)
-    else if (res.url) set((d) => { d.headerImage = res.url! })
-    setUploading(false)
-    if (headerFileRef.current) headerFileRef.current.value = ''
-  }
 
   const onSave = () => {
     setError('')
@@ -160,43 +224,13 @@ export function ContentView ({ initial }: { initial: SiteContent }) {
           <Field label="Descripción para buscadores (Google, al compartir)"><Area value={c.brand.description} onChange={(v) => set((d) => { d.brand.description = v })} /></Field>
           <Field label="Descripción (footer)"><Area value={c.footer.description} onChange={(v) => set((d) => { d.footer.description = v })} /></Field>
 
-          <Field label="Imagen de cabecera (páginas Autos y Contacto)">
-            {c.headerImage
-              ? (
-                <div className="group relative h-32 w-full max-w-md overflow-hidden rounded-lg border bg-muted">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={c.headerImage} alt="" className="h-full w-full object-cover" />
-                  <button
-                    type="button"
-                    title="Quitar imagen"
-                    onClick={() => set((d) => { d.headerImage = '' })}
-                    className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-                )
-              : (
-                <button
-                  type="button"
-                  onClick={() => headerFileRef.current?.click()}
-                  disabled={uploading}
-                  className="flex h-32 w-full max-w-md flex-col items-center justify-center gap-1 rounded-lg border border-dashed text-muted-foreground transition-colors hover:border-cta hover:text-cta disabled:opacity-60"
-                >
-                  {uploading
-                    ? <><Loader2 className="h-6 w-6 animate-spin" /><span className="text-xs">Subiendo…</span></>
-                    : <><ImagePlus className="h-6 w-6" /><span className="text-xs">Subir imagen</span></>}
-                </button>
-                )}
-            <input
-              ref={headerFileRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp,image/avif"
-              hidden
-              onChange={(e) => { void onPickHeaderImage(e.target.files?.[0]) }}
-            />
-            <p className="text-xs text-muted-foreground">Se ve de fondo en las cabeceras. Ideal horizontal (JPG/PNG/WEBP, máx 5 MB). Recuerda Guardar.</p>
-          </Field>
+          <ImageField
+            label="Imagen de cabecera (Autos, y Contacto si no tiene la suya)"
+            hint="Se ve de fondo en las cabeceras. Ideal horizontal (JPG/PNG/WEBP, máx 5 MB). Recuerda Guardar."
+            value={c.headerImage}
+            onChange={(url) => set((d) => { d.headerImage = url })}
+            onError={setError}
+          />
         </Card>
       )}
 
@@ -206,6 +240,13 @@ export function ContentView ({ initial }: { initial: SiteContent }) {
           <Field label="Etiqueta del hero"><Input value={c.hero.badge} onChange={(e) => set((d) => { d.hero.badge = e.target.value })} /></Field>
           <Field label="Título del hero"><Input value={c.hero.title} onChange={(e) => set((d) => { d.hero.title = e.target.value })} /></Field>
           <Field label="Subtítulo del hero"><Area value={c.hero.subtitle} onChange={(v) => set((d) => { d.hero.subtitle = v })} /></Field>
+          <ImageField
+            label="Imagen de fondo del hero"
+            hint="Se ve detrás del título de la portada, con un velo oscuro encima. Ideal horizontal y sin texto. Si la quitas, queda el color de tu marca."
+            value={c.hero.image}
+            onChange={(url) => set((d) => { d.hero.image = url })}
+            onError={setError}
+          />
           <div className="grid gap-4 sm:grid-cols-3">
             <Field label="Título 'Categorías'"><Input value={c.sections.categoriesTitle} onChange={(e) => set((d) => { d.sections.categoriesTitle = e.target.value })} /></Field>
             <Field label="Título 'Destacados'"><Input value={c.sections.featuredTitle} onChange={(e) => set((d) => { d.sections.featuredTitle = e.target.value })} /></Field>
@@ -231,6 +272,13 @@ export function ContentView ({ initial }: { initial: SiteContent }) {
           <Field label="Etiqueta"><Input value={c.about.heroBadge} onChange={(e) => set((d) => { d.about.heroBadge = e.target.value })} /></Field>
           <Field label="Título (usa saltos de línea si quieres)"><Area value={c.about.heroTitle} rows={2} onChange={(v) => set((d) => { d.about.heroTitle = v })} /></Field>
           <Field label="Subtítulo"><Area value={c.about.heroSubtitle} onChange={(v) => set((d) => { d.about.heroSubtitle = v })} /></Field>
+          <ImageField
+            label="Imagen de fondo del hero"
+            hint="Se ve detrás del título, con un velo oscuro encima. Ideal horizontal y sin texto. Si la quitas, queda el color de tu marca."
+            value={c.about.heroImage}
+            onChange={(url) => set((d) => { d.about.heroImage = url })}
+            onError={setError}
+          />
 
           <Field label="Estadísticas">
             <div className="grid gap-3 sm:grid-cols-2">
@@ -250,6 +298,13 @@ export function ContentView ({ initial }: { initial: SiteContent }) {
             <Field label="Historia — etiqueta"><Input value={c.about.storyEyebrow} onChange={(e) => set((d) => { d.about.storyEyebrow = e.target.value })} /></Field>
             <Field label="Historia — título"><Input value={c.about.storyTitle} onChange={(e) => set((d) => { d.about.storyTitle = e.target.value })} /></Field>
           </div>
+          <ImageField
+            label="Historia — foto"
+            hint="Va al lado de tu historia. Ideal una foto real de tu negocio o tu equipo. Si la quitas, el texto ocupa todo el ancho."
+            value={c.about.storyImage}
+            onChange={(url) => set((d) => { d.about.storyImage = url })}
+            onError={setError}
+          />
           <Field label="Historia — párrafos">
             <div className="space-y-3">
               {c.about.storyParagraphs.map((p, i) => (
@@ -341,6 +396,13 @@ export function ContentView ({ initial }: { initial: SiteContent }) {
             <Field label="Subtítulo"><Input value={c.contact.subtitle} onChange={(e) => set((d) => { d.contact.subtitle = e.target.value })} /></Field>
             <Field label="Título del formulario"><Input value={c.contact.formTitle} onChange={(e) => set((d) => { d.contact.formTitle = e.target.value })} /></Field>
           </div>
+          <ImageField
+            label="Imagen de cabecera de esta página"
+            hint="Solo para Contacto. Si la dejas vacía se usa la de Marca."
+            value={c.contact.image}
+            onChange={(url) => set((d) => { d.contact.image = url })}
+            onError={setError}
+          />
         </Card>
       )}
       </div>

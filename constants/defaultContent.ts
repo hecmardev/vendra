@@ -19,6 +19,8 @@ export interface SiteContent {
     badge: string
     title: string
     subtitle: string
+    /** Fondo del hero de la portada. Vacío = solo el color de marca. */
+    image: string
   }
   sections: {
     categoriesTitle: string
@@ -30,9 +32,13 @@ export interface SiteContent {
     heroBadge: string
     heroTitle: string
     heroSubtitle: string
+    /** Fondo del hero de Nosotros. Vacío = solo el color de marca. */
+    heroImage: string
     stats: Stat[]
     storyEyebrow: string
     storyTitle: string
+    /** Foto junto a la historia. Vacío = no se pinta la columna de imagen. */
+    storyImage: string
     storyParagraphs: string[]
     commitments: string[]
     timelineEyebrow: string
@@ -50,6 +56,8 @@ export interface SiteContent {
     title: string
     subtitle: string
     formTitle: string
+    /** Cabecera propia de /contacto. Vacío = usa `headerImage`. */
+    image: string
   }
   footer: {
     description: string
@@ -72,7 +80,11 @@ export const DEFAULT_CONTENT: SiteContent = {
   hero: {
     badge: 'Seminuevos verificados',
     title: 'Encuentra tu próximo auto',
-    subtitle: 'Explora el inventario, compara precios y contacta directo por WhatsApp.'
+    subtitle: 'Explora el inventario, compara precios y contacta directo por WhatsApp.',
+    // Foto de archivo mientras el dealer no sube la suya. Estaba cableada en
+    // Hero.tsx, así que todos los sitios se veían iguales y nadie podía
+    // cambiarla; aquí al menos es un default editable desde el panel.
+    image: 'https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?w=1600&h=900&fit=crop&q=80'
   },
   sections: {
     categoriesTitle: 'Explora por tipo',
@@ -88,6 +100,10 @@ export const DEFAULT_CONTENT: SiteContent = {
     heroBadge: 'Sobre nosotros',
     heroTitle: 'Más que vender autos,\nconstruimos confianza',
     heroSubtitle: 'Somos un equipo apasionado por los autos. Cada unidad que publicamos pasa por una revisión rigurosa para que estrenes con total tranquilidad.',
+    // Fotos de archivo mientras el dealer no sube las suyas. Estaban cableadas
+    // en AboutHero.tsx y Story.tsx, así que todos los sitios mostraban las
+    // mismas y nadie podía cambiarlas.
+    heroImage: 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=1600&h=900&fit=crop&q=80',
     stats: [
       { value: '+500', label: 'Autos entregados' },
       { value: '10', label: 'Años de experiencia' },
@@ -96,6 +112,7 @@ export const DEFAULT_CONTENT: SiteContent = {
     ],
     storyEyebrow: 'Nuestra historia',
     storyTitle: 'Empezamos con una idea simple',
+    storyImage: 'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=800&h=600&fit=crop&q=80',
     storyParagraphs: [
       'Comprar un auto seminuevo debería ser fácil, claro y sin sorpresas. Desde entonces hemos acompañado a cientos de familias a estrenar auto con la tranquilidad de saber exactamente lo que compran.',
       'Hoy seguimos con la misma misión: autos revisados, precios transparentes y un trato cercano por WhatsApp o en persona.'
@@ -129,7 +146,8 @@ export const DEFAULT_CONTENT: SiteContent = {
   contact: {
     title: 'Contacto',
     subtitle: 'Estamos para ayudarte. Escríbenos.',
-    formTitle: 'Déjanos tus datos'
+    formTitle: 'Déjanos tus datos',
+    image: ''
   },
   footer: {
     description: 'Autos seminuevos verificados, con precios claros y trato directo. Encuentra tu próximo auto con confianza.'

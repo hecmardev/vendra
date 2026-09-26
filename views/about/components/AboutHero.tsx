@@ -12,12 +12,12 @@ export async function AboutHero () {
     <section className="relative overflow-hidden bg-primary text-primary-foreground">
       {/* Fondo */}
       <div aria-hidden className="absolute inset-0">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=1600&h=900&fit=crop&q=80"
-          alt=""
-          className="h-full w-full object-cover"
-        />
+        {/* La foto la pone el dealer desde Contenido → Nosotros. Si la quita,
+            el hero queda sobre el color de marca. */}
+        {about.heroImage && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={about.heroImage} alt="" className="h-full w-full object-cover" />
+        )}
         <div className="absolute inset-0 bg-gradient-to-b from-primary/90 via-primary/85 to-primary/95" />
         <div className="absolute -left-24 top-10 h-80 w-80 rounded-full bg-cta/25 blur-3xl" />
       </div>
