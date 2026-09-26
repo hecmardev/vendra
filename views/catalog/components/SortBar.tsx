@@ -2,25 +2,23 @@
 
 import { SlidersHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { useCatalog, type SortKey } from '../states/CatalogProvider'
+import { Combo } from '@/components/common/combo'
+import { useCatalog, SORT_OPTIONS, type SortKey } from '../states/CatalogProvider'
 
-const OPTIONS: { value: SortKey; label: string }[] = [
-  { value: 'recientes', label: 'Más recientes' },
-  { value: 'precio-asc', label: 'Precio: menor a mayor' },
-  { value: 'precio-desc', label: 'Precio: mayor a menor' }
-]
-
-/** Barra superior del catálogo: toggle de filtros + conteo de resultados + orden. */
+/**
+ * Barra superior del catálogo en ESCRITORIO: muestra/oculta la columna de
+ * filtros, cuenta resultados y ordena. En móvil la reemplaza MobileFilterBar,
+ * que además se queda pegada al hacer scroll.
+ */
 export function SortBar () {
   const { filtered, sort, setSort, filtersOpen, toggleFilters } = useCatalog()
 
   return (
-    <div className="flex items-center justify-between gap-4">
+    <div className="hidden items-center justify-between gap-4 lg:flex">
       <div className="flex items-center gap-3">
         <Button variant={filtersOpen ? 'secondary' : 'outline'} size="sm" onClick={toggleFilters} className="gap-2">
           <SlidersHorizontal className="h-4 w-4" />
-          <span className="hidden sm:inline">{filtersOpen ? 'Ocultar filtros' : 'Mostrar filtros'}</span>
-          <span className="sm:hidden">Filtros</span>
+          {filtersOpen ? 'Ocultar filtros' : 'Mostrar filtros'}
         </Button>
         <p className="text-sm text-muted-foreground">
           <span className="font-semibold text-foreground">{filtered.length}</span>{' '}
@@ -28,16 +26,14 @@ export function SortBar () {
         </p>
       </div>
       <label className="flex items-center gap-2 text-sm">
-        <span className="hidden text-muted-foreground sm:inline">Ordenar por</span>
-        <select
+        <span className="text-muted-foreground">Ordenar por</span>
+        <Combo
           value={sort}
-          onChange={(e) => setSort(e.target.value as SortKey)}
-          className="h-9 rounded-md border border-input bg-background px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-        >
-          {OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
+          onChange={(v) => setSort(v as SortKey)}
+          options={SORT_OPTIONS}
+          placeholder="Ordenar por"
+          className="h-9 w-56"
+        />
       </label>
     </div>
   )

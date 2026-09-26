@@ -2,11 +2,10 @@
 
 import { useState, useRef, useTransition } from 'react'
 import Link from 'next/link'
-import { ChevronLeft, ImagePlus, X, Loader2, Star, Check, ChevronsUpDown } from 'lucide-react'
+import { ChevronLeft, ImagePlus, X, Loader2, Star } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
+import { Combo } from '@/components/common/combo'
 import { cn } from '@/lib/utils'
 import { saveCarAction, uploadCarPhotoAction } from '@/app/dashboard/(panel)/inventario/actions'
 import type { Car } from '@/interfaces/car'
@@ -61,90 +60,6 @@ function Field ({ label, children, className }: { label: string; children: React
       <label className="text-sm font-medium">{label}</label>
       {children}
     </div>
-  )
-}
-
-/**
- * Combobox con búsqueda (shadcn: Popover + Command). Escribir filtra la lista,
- * que se queda acotada en alto en vez de crecer con el catálogo completo — un
- * <select> nativo no admite ni filtro ni límite de alto, porque ese popup lo
- * dibuja el navegador.
- *
- * No es una lista cerrada: si lo buscado no existe, ofrece capturarlo tal cual.
- * Un lote recibe lo que le llega a consignación, y quedarse sin poder dar de
- * alta un Alfa Romeo hasta que alguien toque el código no es opción.
- */
-function Combo ({ value, onChange, options, placeholder, buscar, capitalizar }: {
-  value: string
-  onChange: (v: string) => void
-  options: string[]
-  placeholder: string
-  /**
-   * Texto del buscador. Su presencia decide el tipo de lista: CON buscador se
-   * filtra y se admite capturar algo fuera de catálogo; SIN buscador es una
-   * lista cerrada. Se omite en listas de tres o cuatro opciones, donde buscar
-   * estorba, y en las que no pueden aceptar un valor libre — `status` es un
-   * enum en la base y un valor inventado reventaría el insert.
-   */
-  buscar?: string
-  /** Para valores que se guardan en minúsculas (los estatus) y se muestran capitalizados. */
-  capitalizar?: boolean
-}) {
-  const [open, setOpen] = useState(false)
-  const [query, setQuery] = useState('')
-  const libre = query.trim()
-
-  const pick = (b: string) => {
-    onChange(b)
-    setQuery('')
-    setOpen(false)
-  }
-
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <button
-          type="button"
-          role="combobox"
-          aria-expanded={open}
-          className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-        >
-          <span className={cn(capitalizar && 'capitalize', !value && 'text-muted-foreground')}>{value || placeholder}</span>
-          <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
-        </button>
-      </PopoverTrigger>
-
-      <PopoverContent align="start" className="w-[var(--radix-popover-trigger-width)] p-0">
-        <Command>
-          {buscar && <CommandInput placeholder={buscar} value={query} onValueChange={setQuery} />}
-          <CommandList className="max-h-56">
-            {buscar && (
-              <CommandEmpty className="p-1">
-                {libre && (
-                  <button
-                    type="button"
-                    onClick={() => pick(libre)}
-                    className="w-full rounded px-2 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground"
-                  >
-                    Usar <span className="font-semibold">{libre}</span>
-                  </button>
-                )}
-              </CommandEmpty>
-            )}
-            <CommandGroup>
-              {options.map((b) => (
-                // onSelect sin argumento a propósito: cmdk lo entrega en
-                // minúsculas y guardaría "kia" en vez de "KIA".
-                <CommandItem key={b} value={b} onSelect={() => pick(b)} className={cn(capitalizar && 'capitalize')}>
-                  <Check className={cn('mr-2 h-4 w-4', b === value ? 'opacity-100' : 'opacity-0')} />
-                  {b}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
   )
 }
 
