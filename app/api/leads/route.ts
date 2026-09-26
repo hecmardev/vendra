@@ -23,7 +23,10 @@ export async function POST (req: NextRequest) {
   }
 
   // Origen del lead, validado contra una lista blanca (no confiar en el body).
-  const ALLOWED_SOURCES = new Set(['web_form', 'apartado'])
+  // 'whatsapp' = el visitante dejó sus datos ANTES de abrir el chat. Importa
+  // distinguirlo: ese lead puede no tener conversación detrás si nunca llegó a
+  // enviar el mensaje, y el teléfono es lo único con lo que el dealer lo alcanza.
+  const ALLOWED_SOURCES = new Set(['web_form', 'apartado', 'whatsapp'])
   const source = ALLOWED_SOURCES.has(body.source) ? String(body.source) : 'web_form'
 
   // TODO(impl): validar/sanitizar phone/email; rate limiting; Turnstile.

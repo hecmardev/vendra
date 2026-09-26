@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useTransition } from 'react'
 import { createPortal } from 'react-dom'
-import { Phone, Mail, X, MessageCircle, Car, Check, Loader2 } from 'lucide-react'
+import { Phone, Mail, X, Car, Check, Loader2 } from 'lucide-react'
+import { WhatsAppIcon } from '@/components/common/whatsapp-cta/icon'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -186,7 +187,7 @@ export function LeadsView ({ leads: initialLeads }: { leads: Lead[] }) {
                 className="flex h-11 w-full items-center justify-center gap-2 rounded-md text-sm font-medium text-white"
                 style={{ backgroundColor: '#25D366' }}
               >
-                <MessageCircle className="h-5 w-5" /> Contactar por WhatsApp
+                <WhatsAppIcon className="h-5 w-5" /> Contactar por WhatsApp
               </a>
             </div>
           </aside>

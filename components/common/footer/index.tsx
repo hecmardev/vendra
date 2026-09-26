@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { Car, Phone, Mail, MapPin, Clock, MessageCircle, LogIn } from 'lucide-react'
+import { Car, Phone, Mail, MapPin, Clock, LogIn } from 'lucide-react'
+import { WhatsAppIcon } from '../whatsapp-cta/icon'
 import { getContent } from '@/lib/content'
 import { getBusiness } from '@/lib/business'
 import { getTenant } from '@/lib/tenant'
@@ -42,7 +43,7 @@ export default async function Footer ({ dealerName }: { dealerName?: string }) {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 rounded-md border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium backdrop-blur transition-colors hover:bg-white/20"
             >
-              <MessageCircle className="h-4 w-4" /> Escríbenos por WhatsApp
+              <WhatsAppIcon className="h-4 w-4" /> Escríbenos por WhatsApp
             </a>
           </div>
 

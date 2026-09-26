@@ -65,7 +65,7 @@ export async function Contact () {
           <Reveal delay={0.12}>
             <div className="rounded-xl border bg-card p-6 shadow-sm">
               <h2 className="mb-4 text-lg font-bold">{contact.formTitle}</h2>
-              <LeadForm />
+              <LeadForm source="web_form" />
             </div>
           </Reveal>
         </div>

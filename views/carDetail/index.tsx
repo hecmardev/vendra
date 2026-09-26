@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Navbar, Footer, CarCard, WhatsAppButton, WhatsAppFloat, FinancingCalc } from '@/components/common'
+import { Navbar, Footer, CarCard, FinancingCalc } from '@/components/common'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { formatPrice, estimateMonthly } from '@/helpers/format'
@@ -7,10 +7,10 @@ import { getTenant } from '@/lib/tenant'
 import { getCarBySlug, listPublicCars } from '@/services/cars'
 import { getDealerFeatures } from '@/services/dealers'
 import { getBusiness } from '@/lib/business'
-import { DEMO_DEALER } from '@/constants/dealer'
 import type { Car } from '@/interfaces/car'
 import { Breadcrumb } from './components/Breadcrumb'
 import { ReserveDialog } from './components/ReserveDialog'
+import { WhatsAppDialog } from './components/WhatsAppDialog'
 import { Gallery } from './components/Gallery'
 import { Specs } from './components/Specs'
 
@@ -51,7 +51,10 @@ export async function CarDetail ({ slug }: { slug: string }) {
   // Módulos contratados por el dealer (Ajustes → Módulos). Lectura pública
   // desde la 0006; sin flags, nada opcional se muestra.
   const features = tenant ? await getDealerFeatures(tenant.dealerId) : {}
-  const { name: businessName } = await getBusiness()
+  // El WhatsApp sale de aquí, NO de DEMO_DEALER: getBusiness ya cae al mock
+  // cuando el dealer no lo ha configurado, así que tomarlo del mock directo
+  // mandaba a todos los clientes a un número inventado.
+  const { name: businessName, whatsapp } = await getBusiness()
 
   if (!car) {
     return (
@@ -132,9 +135,11 @@ export async function CarDetail ({ slug }: { slug: string }) {
 
                 <div className="space-y-2">
                   <ReserveDialog carId={car.id} carLabel={`${car.brand} ${car.model} ${car.year}`} />
-                  <WhatsAppButton phone={DEMO_DEALER.whatsapp} message={waMessage} className="w-full">
-                    Preguntar por WhatsApp
-                  </WhatsAppButton>
+                  <WhatsAppDialog
+                    carId={car.id}
+                    carLabel={`${car.brand} ${car.model} ${car.year}`}
+                    phone={whatsapp}
+                  />
                 </div>
               </div>
             </aside>
@@ -152,7 +157,6 @@ export async function CarDetail ({ slug }: { slug: string }) {
         </div>
       </main>
       <Footer />
-      <WhatsAppFloat phone={DEMO_DEALER.whatsapp} message={waMessage} />
     </div>
   )
 }

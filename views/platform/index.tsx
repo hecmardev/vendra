@@ -1,14 +1,15 @@
 import Link from 'next/link'
 import {
-  Car, Globe, MessageCircle, Users, BarChart3, Palette, Wand2,
+  Car, Globe, Users, BarChart3, Palette, Wand2,
   Check, ArrowRight, UserPlus, Settings2, Rocket
 } from 'lucide-react'
+import { WhatsAppIcon } from '@/components/common/whatsapp-cta/icon'
 import { Button } from '@/components/ui/button'
 import { Reveal } from '@/components/motion/Reveal'
 
 const FEATURES = [
   { icon: Globe, title: 'Tu propio dominio', desc: 'Tu página en tudominio.com, no un perfil dentro de otro sitio.' },
-  { icon: MessageCircle, title: 'WhatsApp integrado', desc: 'Cada auto con botón directo a tu WhatsApp, mensaje prellenado.' },
+  { icon: WhatsAppIcon, title: 'WhatsApp integrado', desc: 'Cada auto con botón directo a tu WhatsApp, mensaje prellenado.' },
   { icon: Users, title: 'Leads en un panel', desc: 'Todos los contactos que llegan de tu sitio, ordenados en un solo lugar.' },
   { icon: BarChart3, title: 'Marketing listo', desc: 'Conecta tu Meta Pixel y Google Analytics para medir y anunciar.' },
   { icon: Palette, title: 'Tu marca', desc: 'Tus colores, tu logo y tus textos. Configúralos sin depender de nadie.' },
