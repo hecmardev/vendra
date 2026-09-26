@@ -9,6 +9,7 @@ export { default as Testimonials } from './testimonials'
 export { default as CarCard } from './carCard'
 export { WhatsAppButton, WhatsAppAction, WhatsAppFloat } from './whatsapp-cta'
 export { WhatsAppIcon } from './whatsapp-cta/icon'
+export { AddressLink, PhoneLink, MailLink } from './contact-links'
 export { LeadForm } from './lead-form'
 export { FinancingCalc } from './financing-calc'
 

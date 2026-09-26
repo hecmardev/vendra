@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Car, Phone, Mail, MapPin, Clock, LogIn } from 'lucide-react'
 import { WhatsAppIcon } from '../whatsapp-cta/icon'
+import { AddressLink, PhoneLink, MailLink } from '../contact-links'
 import { getContent } from '@/lib/content'
 import { getBusiness } from '@/lib/business'
 import { getTenant } from '@/lib/tenant'
@@ -51,9 +52,9 @@ export default async function Footer ({ dealerName }: { dealerName?: string }) {
           <div className="space-y-3">
             <h3 className="text-sm font-semibold uppercase tracking-wide text-primary-foreground/60">Contacto</h3>
             <ul className="space-y-2.5 text-sm text-primary-foreground/80">
-              <li className="flex items-center gap-2"><Phone className="h-4 w-4 shrink-0" />{business.phone}</li>
-              <li className="flex items-center gap-2"><Mail className="h-4 w-4 shrink-0" />{business.email}</li>
-              <li className="flex items-start gap-2"><MapPin className="h-4 w-4 shrink-0 translate-y-0.5" />{business.address}</li>
+              <li className="flex items-center gap-2"><Phone className="h-4 w-4 shrink-0" /><PhoneLink phone={business.phone} /></li>
+              <li className="flex items-center gap-2"><Mail className="h-4 w-4 shrink-0" /><MailLink email={business.email} /></li>
+              <li className="flex items-start gap-2"><MapPin className="h-4 w-4 shrink-0 translate-y-0.5" /><AddressLink address={business.address} /></li>
               <li className="flex items-center gap-2"><Clock className="h-4 w-4 shrink-0" />{business.hours}</li>
             </ul>
           </div>
@@ -64,7 +65,7 @@ export default async function Footer ({ dealerName }: { dealerName?: string }) {
             <ul className="space-y-2.5 text-sm text-primary-foreground/80">
               {CATEGORIES.map((c) => (
                 <li key={c}>
-                  <Link href={`/autos?tipo=${c}`} className="transition-colors hover:text-primary-foreground">{c}</Link>
+                  <Link href={`/autos?tipo=${c}`} className="underline-offset-2 transition-colors hover:text-primary-foreground hover:underline">{c}</Link>
                 </li>
               ))}
               <li>
@@ -80,7 +81,7 @@ export default async function Footer ({ dealerName }: { dealerName?: string }) {
               {latest.map((car) => (
                 <li key={car.id}>
                   <Link href={`/autos/${car.slug}`} className="group flex items-center justify-between gap-3">
-                    <span className="truncate text-primary-foreground/80 transition-colors group-hover:text-primary-foreground">
+                    <span className="truncate underline-offset-2 transition-colors text-primary-foreground/80 group-hover:text-primary-foreground group-hover:underline">
                       {car.brand} {car.model}
                     </span>
                     <span className="shrink-0 text-xs font-medium text-primary-foreground/60">{formatPrice(car.price)}</span>
