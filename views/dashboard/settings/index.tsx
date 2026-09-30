@@ -26,8 +26,8 @@ function Switch ({ checked, onChange }: { checked: boolean; onChange: (v: boolea
 
 const MODULES = [
   { key: 'financiamiento', label: 'Calculadora de financiamiento', desc: 'Muestra un simulador de mensualidades en cada auto.' },
-  { key: 'seccion_personalizada', label: 'Sección personalizada', desc: 'Habilita una sección extra a tu medida (se cotiza aparte).' },
-  { key: 'ia_whatsapp', label: 'Asistente de IA por WhatsApp', desc: 'Un bot responde preguntas básicas usando tu inventario.' }
+  // { key: 'seccion_personalizada', label: 'Sección personalizada', desc: 'Habilita una sección extra a tu medida (se cotiza aparte).' },
+  // { key: 'ia_whatsapp', label: 'Asistente de IA por WhatsApp', desc: 'Un bot responde preguntas básicas usando tu inventario.' }
 ]
 
 function Section ({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
