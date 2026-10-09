@@ -7,6 +7,15 @@
  *   pnpm db:migrate -- --all      # reaplica todas (son idempotentes)
  *   pnpm db:migrate -- --only 0005
  *
+ * Producción (lee .env.prod.local y exige --prod para escribir):
+ *   node --env-file=.env.prod.local scripts/migrate.mjs --status
+ *   node --env-file=.env.prod.local scripts/migrate.mjs --prod
+ *
+ * Cada migración corre en UNA transacción junto con su registro: si falla,
+ * no queda nada a medias ni registrada como aplicada. La excepción son las que
+ * agregan un valor a un enum (`alter type … add value`), porque Postgres no
+ * deja usar ese valor dentro de la misma transacción que lo crea.
+ *
  * El registro vive en la tabla `migrations.applied`, en un esquema propio y no
  * en `public`, para que PostgREST no la exponga por la API.
  *
@@ -14,9 +23,10 @@
  * aplicada cambia después, aparece como CAMBIADA en vez de aplicada: editar una
  * migración vieja no la vuelve a correr sola en las bases que ya la tenían.
  *
- * Necesita `psql` (viene con libpq):
- *   brew install libpq
- *   echo 'export PATH="/usr/local/opt/libpq/bin:$PATH"' >> ~/.zshrc
+ * Necesita `psql`:
+ *   Ubuntu / WSL:  apt install postgresql-client
+ *   macOS:         brew install libpq
+ *                  echo 'export PATH="/usr/local/opt/libpq/bin:$PATH"' >> ~/.zshrc
  *
  * La cadena de conexión sale del dashboard de Supabase → Connect → Session
  * pooler. Va en .env como SUPABASE_DB_URL y NUNCA se commitea.
@@ -60,6 +70,18 @@ if (refApi && refDb && refApi !== refDb && !has('force')) {
 }
 
 /**
+ * Qué ambiente es. El host del pooler no sirve para saberlo: QA y producción
+ * están en la misma región y comparten host. Lo que los distingue es el dominio
+ * de plataforma de cada .env (ver docs/entornos-qa-prod.md).
+ */
+const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN ?? ''
+const ENV = baseDomain === 'vendra.com.mx'
+  ? 'PRODUCCIÓN'
+  : baseDomain.includes('test') ? 'QA' : `otro (${baseDomain || 'sin NEXT_PUBLIC_BASE_DOMAIN'})`
+const IS_PROD = ENV === 'PRODUCCIÓN'
+const envFile = process.execArgv.find((a) => a.startsWith('--env-file'))?.split('=')[1] ?? '?'
+
+/**
  * psql del PATH, o el de libpq si brew no lo enlazó (es keg-only). Se prueban
  * los dos prefijos de Homebrew: /usr/local en Intel, /opt/homebrew en Apple
  * Silicon.
@@ -69,7 +91,11 @@ function findPsql () {
   for (const p of ['/usr/local/opt/libpq/bin/psql', '/opt/homebrew/opt/libpq/bin/psql']) {
     if (existsSync(p)) return p
   }
-  throw new Error('No se encontró psql. Instálalo con:  brew install libpq')
+  throw new Error(
+    'No se encontró psql. Instálalo con:\n' +
+    '  Ubuntu / WSL:  apt install postgresql-client\n' +
+    '  macOS:         brew install libpq'
+  )
 }
 
 const psql = findPsql()
@@ -119,9 +145,12 @@ const rows = files.map((f) => {
   return { f, checksum, state, at: prev?.at }
 })
 
-// La cadena trae la contraseña: se muestra solo el host para saber a qué base va.
+// La cadena trae la contraseña: se muestra solo el host y el proyecto.
 const host = url.replace(/^.*@/, '').replace(/\/.*$/, '')
-console.log(`Base: ${host}\n`)
+console.log(`Base:     ${host}`)
+console.log(`Proyecto: ${refDb ?? '?'}  ·  ${ENV}  ·  ${envFile}`)
+if (IS_PROD) console.log('\n  ⚠  ESTO ES PRODUCCIÓN')
+console.log()
 
 for (const r of rows) {
   const when = r.at ? r.at.slice(0, 16).replace('T', ' ') : ''
@@ -135,6 +164,16 @@ if (has('status')) {
     ? `\n${pendientes.length} sin aplicar.`
     : '\nTodo al día.')
   process.exit(0)
+}
+
+// Todo lo que sigue escribe en la base. En producción se pide decirlo
+// explícitamente: un `pnpm db:migrate` con el .env equivocado no debe bastar.
+if (IS_PROD && !has('prod')) {
+  console.error(
+    '\nABORTADO: esta base es PRODUCCIÓN y no se pasó --prod.\n' +
+    'Revisa el --status de arriba y, si es lo que quieres, vuelve a correrlo con --prod.'
+  )
+  process.exit(1)
 }
 
 // --- Baseline ----------------------------------------------------------------
@@ -177,24 +216,36 @@ if (aCorrer.length === 0) {
   process.exit(0)
 }
 
+// `alter type … add value` no puede ir en la misma transacción que use el valor
+// nuevo (la 0007 lo agrega y lo pone de default). Esas corren sin transacción,
+// como antes. Se detecta por el contenido para no tener que marcar los archivos:
+// editar una migración ya aplicada la dejaría como CAMBIADA.
+const ENUM_ADD = /alter\s+type\s+\S+\s+add\s+value/i
+
 console.log(`\nAplicando ${aCorrer.length}:`)
 for (const r of aCorrer) {
   process.stdout.write(`  ${r.f} ... `)
-  // ON_ERROR_STOP=1: si una sentencia falla, psql aborta con código != 0 en vez
-  // de seguir con las siguientes y dejar la migración a medias.
-  const res = spawnSync(psql, ['-v', 'ON_ERROR_STOP=1', '-q', '-f', join(DIR, r.f), url], {
-    stdio: ['ignore', 'inherit', 'inherit']
-  })
-  if (res.status !== 0) {
-    console.error(`\n✗ Falló ${r.f}. Se detiene aquí; las anteriores ya quedaron registradas.`)
-    process.exit(res.status ?? 1)
-  }
-  query(`
+  const atomic = !ENUM_ADD.test(readFileSync(join(DIR, r.f), 'utf8'))
+  const record = `
     insert into migrations.applied (name, checksum)
     values ('${r.f}', '${r.checksum}')
     on conflict (name) do update set checksum = excluded.checksum, applied_at = now();
-  `)
-  console.log('ok')
+  `
+  // ON_ERROR_STOP=1: psql aborta en la primera sentencia que falle.
+  // --single-transaction: el archivo Y su registro van juntos en una
+  // transacción, así que un fallo deshace todo y la migración sigue PENDIENTE.
+  const args = atomic
+    ? ['-v', 'ON_ERROR_STOP=1', '-q', '--single-transaction', '-f', join(DIR, r.f), '-c', record, url]
+    : ['-v', 'ON_ERROR_STOP=1', '-q', '-f', join(DIR, r.f), url]
+  const res = spawnSync(psql, args, { stdio: ['ignore', 'inherit', 'inherit'] })
+  if (res.status !== 0) {
+    console.error(atomic
+      ? `\n✗ Falló ${r.f}. Se deshizo completa y sigue PENDIENTE; las anteriores ya quedaron aplicadas.`
+      : `\n✗ Falló ${r.f} (corre sin transacción: puede haber quedado a medias). Las anteriores ya quedaron aplicadas.`)
+    process.exit(res.status ?? 1)
+  }
+  if (!atomic) query(record)
+  console.log(atomic ? 'ok' : 'ok (sin transacción: agrega un valor a un enum)')
 }
 
 console.log('\nListo.')

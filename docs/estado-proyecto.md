@@ -65,15 +65,21 @@ Correr en orden si no están aplicadas (idempotentes):
   trigger.
 - `0013_lead_sale.sql` — `leads.sold_car_id` y `leads.sale_amount`; un trigger
   los borra si el lead sale de vendido y valida que `car_id`/`sold_car_id` sean
-  del mismo dealer. **Pendiente de aplicar**, antes del despliegue: sin ella el
-  panel de leads falla.
+  del mismo dealer.
 - `0014_car_status_history.sql` — historial de estatus y precio de los autos
-  (`car_status_history`), escrito por un trigger. **Pendiente de aplicar.**
+  (`car_status_history`), escrito por un trigger.
 
-Hasta la `0012`, aplicadas en QA y en producción (verificado 09/oct/2026 con
-`migrate.mjs --status`). La forma de aplicarlas es `pnpm db:migrate` (QA, usa
-`.env`) o `node --env-file=.env.prod.local scripts/migrate.mjs` (producción);
-requiere `psql`.
+Hasta la `0014`, aplicadas en QA y en producción (verificado 09/oct/2026 con
+`migrate.mjs --status`). Requiere `psql`. Cómo aplicarlas:
+
+- **QA:** `pnpm db:migrate` (usa `.env`).
+- **Producción:** `node --env-file=.env.prod.local scripts/migrate.mjs --status`
+  y luego lo mismo con `--prod`. Sin `--prod` el script se niega a escribir.
+
+El script muestra el proyecto y el ambiente (`QA` / `PRODUCCIÓN`) antes de
+hacer nada, y corre cada migración en una transacción junto con su registro:
+si falla, se deshace completa y sigue pendiente. Primero la migración, después
+el despliegue (ver `docs/liberacion-prod.md`).
 
 ## Decisiones clave (criterios del proyecto)
 - **Pendientes abiertos:** ver `docs/pendientes.md` — hallazgos de la validación de
