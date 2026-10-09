@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { formatPrice } from '@/helpers/format'
+import { originLabel } from '@/lib/attribution'
 import { setLeadStatusAction, saveLeadNotesAction, markLeadSoldAction } from '@/app/dashboard/(panel)/leads/actions'
 import { LEAD_STATUSES, type Lead, type LeadStatus } from '@/interfaces/lead'
 import { SaleForm, type SaleOption, type SaleInput } from './SaleForm'
@@ -19,6 +20,13 @@ const STATUS_VARIANT: Record<LeadStatus, 'cta' | 'secondary' | 'default' | 'outl
   cita: 'secondary',
   vendido: 'default',
   perdido: 'outline'
+}
+
+/** Por cuál formulario del sitio entró (`leads.source`). */
+const FORM_LABEL: Record<string, string> = {
+  web_form: 'Formulario de contacto',
+  apartado: 'Botón Apartar',
+  whatsapp: 'WhatsApp (dejó sus datos)'
 }
 
 function formatDate (iso: string) {
@@ -137,6 +145,7 @@ export function LeadsView ({ leads: initialLeads, saleOptions }: { leads: Lead[]
                 <th className="px-4 py-3 font-medium">Nombre</th>
                 <th className="px-4 py-3 font-medium">Contacto</th>
                 <th className="hidden px-4 py-3 font-medium md:table-cell">Auto de interés</th>
+                <th className="hidden px-4 py-3 font-medium lg:table-cell">Origen</th>
                 <th className="hidden px-4 py-3 font-medium sm:table-cell">Fecha</th>
                 <th className="px-4 py-3 font-medium">Estado</th>
               </tr>
@@ -156,6 +165,10 @@ export function LeadsView ({ leads: initialLeads, saleOptions }: { leads: Lead[]
                     </div>
                   </td>
                   <td className="hidden px-4 py-3 text-muted-foreground md:table-cell">{lead.carLabel ?? '—'}</td>
+                  <td className="hidden px-4 py-3 lg:table-cell">
+                    <p className="text-muted-foreground">{originLabel(lead.origin?.source ?? null, lead.origin?.medium ?? null)}</p>
+                    {lead.origin?.campaign && <p className="max-w-[12rem] truncate text-xs text-muted-foreground/80">{lead.origin.campaign}</p>}
+                  </td>
                   <td className="hidden px-4 py-3 text-muted-foreground sm:table-cell">{formatDate(lead.createdAt)}</td>
                   <td className="px-4 py-3">
                     <Badge variant={STATUS_VARIANT[lead.status]} className="capitalize">{lead.status}</Badge>
@@ -188,6 +201,29 @@ export function LeadsView ({ leads: initialLeads, saleOptions }: { leads: Lead[]
                 <p className="flex items-center gap-2"><Phone className="h-4 w-4 text-muted-foreground" />{selected.phone}</p>
                 {selected.email && <p className="flex items-center gap-2"><Mail className="h-4 w-4 text-muted-foreground" />{selected.email}</p>}
                 <p className="flex items-center gap-2"><Car className="h-4 w-4 text-muted-foreground" />{selected.carLabel ?? 'Sin auto de interés'}</p>
+              </div>
+
+              <div>
+                <p className="mb-1.5 text-sm font-medium">Origen</p>
+                <dl className="space-y-1 text-xs">
+                  {[
+                    ['Llegó por', originLabel(selected.origin?.source ?? null, selected.origin?.medium ?? null)],
+                    ['Campaña', selected.origin?.campaign],
+                    ['Anuncio', selected.origin?.content],
+                    ['Conjunto', selected.origin?.term],
+                    ['Desde', selected.origin?.referrer],
+                    ['Entró en', selected.origin?.landing],
+                    ['Formulario', FORM_LABEL[selected.form] ?? selected.form],
+                    ['Primera visita', selected.firstOrigin &&
+                      `${originLabel(selected.firstOrigin.source, selected.firstOrigin.medium)}` +
+                      `${selected.firstOrigin.campaign ? ` · ${selected.firstOrigin.campaign}` : ''} · ${formatDate(selected.firstOrigin.at)}`]
+                  ].filter(([, v]) => v).map(([k, v]) => (
+                    <div key={k} className="flex gap-2">
+                      <dt className="w-24 shrink-0 text-muted-foreground">{k}</dt>
+                      <dd className="min-w-0 break-words">{v}</dd>
+                    </div>
+                  ))}
+                </dl>
               </div>
 
               <div>

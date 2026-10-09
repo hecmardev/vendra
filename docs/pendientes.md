@@ -185,6 +185,12 @@ Hoy se compensa configurando en Vercel que el `www` redirija a la raíz, pero es
 depende de que quien dé de alta al dealer se acuerde — y el default de Vercel es
 justo el contrario: redirige la raíz al `www`.
 
+Desde la atribución de campañas (0015) esto pesa más: aunque el middleware
+aceptara las dos versiones, cada una tendría sus propias cookies y un lead que
+cambie de una a otra perdería la campaña. Por eso la redirección quedó como paso
+obligatorio en `onboarding-vendedores.md` § Conectar el dominio del dealer, y el
+arreglo de abajo es una red de seguridad, no un sustituto.
+
 El arreglo natural es intentar la búsqueda quitando el `www.` cuando la primera
 falla. Así el dealer queda protegido aunque el DNS esté configurado al revés.
 

@@ -131,5 +131,7 @@ Estos scripts corren LOCAL pero apuntan a la Supabase que tengas en `.env`
 - **Vercel Pro** hace falta para el wildcard de dominios y para uso comercial (un SaaS).
   Para un demo con 1-2 subdominios puntuales, Hobby puede alcanzar agregándolos a mano.
 - **Fotos**: ya se sirven desde Supabase Storage; `next.config.js` ya permite `*.supabase.co`.
-- **Dealer con dominio propio** (a futuro): agrega su dominio en Vercel → él pone un
-  CNAME a Vercel → das de alta el dealer con ese dominio en el admin.
+- **Dealer con dominio propio**: agrega su dominio en Vercel → él pone un
+  CNAME a Vercel → das de alta el dealer con ese dominio en el admin. Seguir la
+  checklist de `onboarding-vendedores.md` § Conectar el dominio del dealer
+  (redirección `308` de `www` obligatoria).
