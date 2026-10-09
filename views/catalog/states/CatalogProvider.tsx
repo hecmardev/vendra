@@ -14,6 +14,7 @@ export const SORT_OPTIONS: { value: SortKey; label: string }[] = [
 
 export interface CatalogFilters {
   q: string
+  conditions: string[]
   brands: string[]
   bodyTypes: string[]
   transmissions: string[]
@@ -25,10 +26,10 @@ export interface CatalogFilters {
 }
 
 export const EMPTY: CatalogFilters = {
-  q: '', brands: [], bodyTypes: [], transmissions: [], minPrice: null, maxPrice: null, model: '', year: null
+  q: '', conditions: [], brands: [], bodyTypes: [], transmissions: [], minPrice: null, maxPrice: null, model: '', year: null
 }
 
-export type FilterKey = 'brands' | 'bodyTypes' | 'transmissions'
+export type FilterKey = 'conditions' | 'brands' | 'bodyTypes' | 'transmissions'
 
 /**
  * Manda sobre un juego de filtros. El panel `Filters` lo recibe por props en vez
@@ -50,6 +51,7 @@ export interface FiltersControl {
 export function countActive (f: CatalogFilters): number {
   return (
     (f.q.trim() ? 1 : 0) +
+    f.conditions.length +
     f.brands.length +
     f.bodyTypes.length +
     f.transmissions.length +
@@ -63,6 +65,7 @@ export function countActive (f: CatalogFilters): number {
 export function matches (c: Car, f: CatalogFilters): boolean {
   const q = f.q.trim().toLowerCase()
   if (q && !`${c.brand} ${c.model}`.toLowerCase().includes(q)) return false
+  if (f.conditions.length && !f.conditions.includes(c.condition)) return false
   if (f.brands.length && !f.brands.includes(c.brand)) return false
   if (f.bodyTypes.length && !f.bodyTypes.includes(c.bodyType)) return false
   if (f.transmissions.length && !f.transmissions.includes(c.transmission)) return false
@@ -119,7 +122,7 @@ export function CatalogProvider ({
   children
 }: {
   cars: Car[]
-  /** Filtros iniciales (vienen de la URL: ?marca, ?modelo, ?anio, ?tipo, ?q). */
+  /** Filtros iniciales (vienen de la URL: ?condicion, ?marca, ?modelo, ?anio, ?tipo, ?q). */
   initial?: Partial<CatalogFilters>
   children: ReactNode
 }) {

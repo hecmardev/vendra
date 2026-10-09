@@ -49,7 +49,9 @@ export default function CarCard ({ car }: { car: Car }) {
             <h3 className="truncate font-semibold leading-tight">
               {car.brand} {car.model}
             </h3>
-            <p className="text-sm text-muted-foreground">{car.year} · {car.location}</p>
+            <p className="text-sm text-muted-foreground">
+              {car.year} · <span className="capitalize">{car.condition}</span> · {car.location}
+            </p>
           </div>
 
           {/* Specs */}

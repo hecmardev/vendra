@@ -1,4 +1,4 @@
-import { Calendar, Gauge, Cog, Fuel, Palette, MapPin, Car as CarIcon } from 'lucide-react'
+import { Calendar, Gauge, Cog, Fuel, Palette, MapPin, Car as CarIcon, BadgeCheck } from 'lucide-react'
 import { formatMileage } from '@/helpers/format'
 import type { Car } from '@/interfaces/car'
 
@@ -17,6 +17,7 @@ import type { Car } from '@/interfaces/car'
  */
 export function Specs ({ car }: { car: Car }) {
   const items = [
+    { icon: BadgeCheck, label: 'Condición', value: car.condition.charAt(0).toUpperCase() + car.condition.slice(1) },
     { icon: Calendar, label: 'Año', value: car.year },
     { icon: Gauge, label: 'Kilometraje', value: formatMileage(car.mileage) },
     { icon: Cog, label: 'Transmisión', value: car.transmission },

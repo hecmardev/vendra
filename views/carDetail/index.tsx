@@ -28,6 +28,8 @@ function vehicleJsonLd (car: Car, baseUrl: string) {
     brand: { '@type': 'Brand', name: car.brand },
     model: car.model,
     vehicleModelDate: String(car.year),
+    // schema.org no tiene "demo": un demo ya rodó, así que para Google es usado.
+    itemCondition: car.condition === 'nuevo' ? 'https://schema.org/NewCondition' : 'https://schema.org/UsedCondition',
     ...(car.mileage ? { mileageFromOdometer: { '@type': 'QuantitativeValue', value: car.mileage, unitCode: 'KMT' } } : {}),
     ...(car.color ? { color: car.color } : {}),
     ...(car.fuel ? { fuelType: car.fuel } : {}),
@@ -114,7 +116,10 @@ export async function CarDetail ({ slug }: { slug: string }) {
             <aside className="lg:sticky lg:top-20 lg:h-fit">
               <div className="space-y-4 rounded-xl border bg-card p-5 shadow-sm">
                 <div className="space-y-1">
-                  <Badge variant="secondary">{car.bodyType}</Badge>
+                  <div className="flex flex-wrap gap-1.5">
+                    <Badge variant="secondary" className="capitalize">{car.condition}</Badge>
+                    <Badge variant="secondary">{car.bodyType}</Badge>
+                  </div>
                   <h1 className="text-xl font-bold leading-tight">{car.brand} {car.model}</h1>
                   <p className="text-sm text-muted-foreground">{car.year} · {car.location}</p>
                 </div>

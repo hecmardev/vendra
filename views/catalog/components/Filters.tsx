@@ -5,6 +5,7 @@ import { Search, X, ChevronDown } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { CAR_CONDITIONS } from '@/interfaces/car'
 import { useCatalog, type FiltersControl } from '../states/CatalogProvider'
 
 /**
@@ -64,11 +65,19 @@ function Section ({
   )
 }
 
-function CheckGroup ({ options, selected, onToggle }: { options: string[]; selected: string[]; onToggle: (v: string) => void }) {
+function CheckGroup ({
+  options, selected, onToggle, capitalizar
+}: {
+  options: string[]
+  selected: string[]
+  onToggle: (v: string) => void
+  /** Para valores que se guardan en minúsculas (la condición). */
+  capitalizar?: boolean
+}) {
   return (
     <div className="space-y-1.5">
       {options.map((opt) => (
-        <label key={opt} className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+        <label key={opt} className={cn('flex cursor-pointer items-center gap-2 text-sm text-muted-foreground hover:text-foreground', capitalizar && 'capitalize')}>
           <input
             type="checkbox"
             className="h-4 w-4 rounded border-input accent-[hsl(var(--cta))]"
@@ -101,6 +110,8 @@ export function Filters ({
   const { all } = useCatalog()
   const { filters, setQ, toggle, setPrice, reset, activeCount } = control
 
+  // En el orden del formulario, no alfabético: "demo" no debe ir antes que "nuevo".
+  const conditions = CAR_CONDITIONS.filter((v) => all.some((c) => c.condition === v))
   const brands = Array.from(new Set(all.map((c) => c.brand))).sort()
   const bodyTypes = Array.from(new Set(all.map((c) => c.bodyType))).sort()
   const transmissions = Array.from(new Set(all.map((c) => c.transmission))).sort()
@@ -145,6 +156,13 @@ export function Filters ({
           />
         </div>
       </Section>
+
+      {/* Un lote que solo vende seminuevos no necesita elegir entre una opción. */}
+      {conditions.length > 1 && (
+        <Section defaultOpen={!collapsed} title="Condición" count={filters.conditions.length}>
+          <CheckGroup options={conditions} selected={filters.conditions} onToggle={(v) => toggle('conditions', v)} capitalizar />
+        </Section>
+      )}
 
       <Section defaultOpen={!collapsed} title="Tipo" count={filters.bodyTypes.length}>
         <CheckGroup options={bodyTypes} selected={filters.bodyTypes} onToggle={(v) => toggle('bodyTypes', v)} />
