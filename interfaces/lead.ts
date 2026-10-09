@@ -18,8 +18,16 @@ export interface Lead {
   name: string
   phone: string
   email: string | null
+  /** Auto por el que preguntó (`leads.car_id`). */
+  carId: string | null
   carLabel: string | null
+  /** Precio publicado del auto de interés; sugiere el monto al marcar vendido. */
+  carPrice: number | null
   status: LeadStatus
+  /** Auto que compró (0013). Null con status 'vendido' = uno fuera del inventario. */
+  soldCarId: string | null
+  soldCarLabel: string | null
+  saleAmount: number | null
   notes: string
   createdAt: string // ISO
   /** Del más antiguo al más reciente. */

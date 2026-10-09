@@ -7,8 +7,10 @@ import { WhatsAppIcon } from '@/components/common/whatsapp-cta/icon'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { setLeadStatusAction, saveLeadNotesAction } from '@/app/dashboard/(panel)/leads/actions'
+import { formatPrice } from '@/helpers/format'
+import { setLeadStatusAction, saveLeadNotesAction, markLeadSoldAction } from '@/app/dashboard/(panel)/leads/actions'
 import { LEAD_STATUSES, type Lead, type LeadStatus } from '@/interfaces/lead'
+import { SaleForm, type SaleOption, type SaleInput } from './SaleForm'
 
 // Nuevo resalta porque es lo que hay que atender; perdido se apaga porque ya no.
 const STATUS_VARIANT: Record<LeadStatus, 'cta' | 'secondary' | 'default' | 'outline'> = {
@@ -24,15 +26,23 @@ function formatDate (iso: string) {
 }
 
 /** Leads del dealer: métricas + tabla + panel de detalle con gestión de estado. */
-export function LeadsView ({ leads: initialLeads }: { leads: Lead[] }) {
+export function LeadsView ({ leads: initialLeads, saleOptions }: { leads: Lead[]; saleOptions: SaleOption[] }) {
   const [leads, setLeads] = useState<Lead[]>(initialLeads)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
   const [error, setError] = useState('')
   const [notesSaved, setNotesSaved] = useState(false)
-  const [, startTransition] = useTransition()
+  // "Vendido" no cambia el estatus de un clic: abre la captura de la venta.
+  const [selling, setSelling] = useState(false)
+  const [pending, startTransition] = useTransition()
   const selected = leads.find((l) => l.id === selectedId) ?? null
+
+  const openLead = (id: string | null) => {
+    setSelectedId(id)
+    setSelling(false)
+    setError('')
+  }
 
   const count = (s: LeadStatus) => leads.filter((l) => l.status === s).length
   const stats = [
@@ -50,10 +60,42 @@ export function LeadsView ({ leads: initialLeads }: { leads: Lead[] }) {
     // El renglón real lo escribe el trigger de la 0011; este solo lo adelanta en
     // pantalla y se reemplaza al revalidar.
     const change = { from: lead.status, to: status, at: new Date().toISOString() }
-    setLeads((ls) => ls.map((l) => (l.id === id ? { ...l, status, history: [...l.history, change] } : l)))
+    // Al salir de vendido, el trigger de la 0013 borra el auto y el monto de la
+    // venta: aquí se refleja igual para que la pantalla no muestre una venta
+    // que ya no cuenta.
+    const sale = { soldCarId: null, soldCarLabel: null, saleAmount: null }
+    setLeads((ls) => ls.map((l) => (l.id === id ? { ...l, ...sale, status, history: [...l.history, change] } : l)))
     startTransition(async () => {
       const res = await setLeadStatusAction(id, status)
       if (res?.error) setError(res.error)
+    })
+  }
+
+  /** Guarda la venta (y el estatus vendido, si no lo estaba). */
+  const confirmSale = (lead: Lead, input: SaleInput) => {
+    setError('')
+    const soldCarLabel = input.soldCarId
+      ? (input.soldCarId === lead.carId ? lead.carLabel : saleOptions.find((o) => o.id === input.soldCarId)?.label ?? lead.soldCarLabel)
+      : null
+    const history = lead.status === 'vendido'
+      ? lead.history
+      : [...lead.history, { from: lead.status, to: 'vendido' as const, at: new Date().toISOString() }]
+    startTransition(async () => {
+      const res = await markLeadSoldAction(lead.id, {
+        soldCarId: input.soldCarId || null,
+        saleAmount: input.saleAmount,
+        markCarSold: input.markCarSold
+      })
+      if (res?.error) {
+        setError(res.error)
+        return
+      }
+      // La venta sí se guardó aunque el auto no se haya marcado: se avisa igual.
+      if (res?.warning) setError(res.warning)
+      setLeads((ls) => ls.map((l) => (l.id === lead.id
+        ? { ...l, status: 'vendido', soldCarId: input.soldCarId || null, soldCarLabel, saleAmount: input.saleAmount, history }
+        : l)))
+      setSelling(false)
     })
   }
 
@@ -103,7 +145,7 @@ export function LeadsView ({ leads: initialLeads }: { leads: Lead[] }) {
               {leads.map((lead) => (
                 <tr
                   key={lead.id}
-                  onClick={() => setSelectedId(lead.id)}
+                  onClick={() => openLead(lead.id)}
                   className="cursor-pointer hover:bg-secondary/30"
                 >
                   <td className="px-4 py-3 font-medium">{lead.name}</td>
@@ -129,11 +171,11 @@ export function LeadsView ({ leads: initialLeads }: { leads: Lead[] }) {
           PageTransition (si no, el `fixed` se posiciona relativo a ese div). */}
       {selected && mounted && createPortal(
         <>
-          <div className="fixed inset-0 z-40 bg-black/40" onClick={() => setSelectedId(null)} />
+          <div className="fixed inset-0 z-40 bg-black/40" onClick={() => openLead(null)} />
           <aside className="fixed inset-y-0 right-0 z-50 flex w-full max-w-sm flex-col border-l bg-card shadow-xl">
             <div className="flex items-center justify-between border-b p-4">
               <h2 className="font-bold">Detalle del lead</h2>
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelectedId(null)}><X className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openLead(null)}><X className="h-4 w-4" /></Button>
             </div>
 
             <div className="flex-1 space-y-5 overflow-y-auto p-4">
@@ -154,7 +196,7 @@ export function LeadsView ({ leads: initialLeads }: { leads: Lead[] }) {
                   {LEAD_STATUSES.map((s) => (
                     <button
                       key={s}
-                      onClick={() => setStatus(selected.id, s)}
+                      onClick={() => (s === 'vendido' ? setSelling(true) : setStatus(selected.id, s))}
                       className={cn(
                         'h-8 rounded-md border px-3 text-sm capitalize transition-colors',
                         selected.status === s ? 'border-cta bg-cta text-cta-foreground' : 'hover:bg-accent'
@@ -164,6 +206,34 @@ export function LeadsView ({ leads: initialLeads }: { leads: Lead[] }) {
                     </button>
                   ))}
                 </div>
+
+                {selling && (
+                  <div className="mt-3">
+                    <SaleForm
+                      key={selected.id}
+                      lead={selected}
+                      options={saleOptions}
+                      pending={pending}
+                      onCancel={() => setSelling(false)}
+                      onConfirm={(input) => confirmSale(selected, input)}
+                    />
+                  </div>
+                )}
+
+                {!selling && selected.status === 'vendido' && (
+                  <div className="mt-3 flex items-start justify-between gap-3 rounded-lg border bg-background p-3 text-sm">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium">{selected.soldCarLabel ?? 'Un auto fuera del inventario'}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {selected.saleAmount != null ? formatPrice(selected.saleAmount) : 'Sin monto registrado'}
+                        {selected.soldCarId && selected.carId && selected.soldCarId !== selected.carId && ' · No es el auto por el que preguntó'}
+                      </p>
+                    </div>
+                    <button onClick={() => setSelling(true)} className="shrink-0 text-xs font-medium text-cta hover:underline">
+                      Editar
+                    </button>
+                  </div>
+                )}
               </div>
 
               {selected.history.length > 0 && (

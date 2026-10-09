@@ -29,25 +29,33 @@ export async function POST (req: NextRequest) {
   const ALLOWED_SOURCES = new Set(['web_form', 'apartado', 'whatsapp'])
   const source = ALLOWED_SOURCES.has(body.source) ? String(body.source) : 'web_form'
 
+  // El auto de interés viene del navegador: solo se acepta si es un auto de
+  // ESTE dealer. Si no, el lead se guarda sin auto en vez de perderse (el
+  // trigger de la 0013 rechazaría el insert completo). La forma de uuid se
+  // revisa antes porque Postgres truena con un id mal formado.
+  const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  let car: { id: string; brand: string; model: string; year: number } | null = null
+  if (typeof body.carId === 'string' && UUID.test(body.carId)) {
+    const { data } = await createAdminClient()
+      .from('cars').select('id, brand, model, year')
+      .eq('id', body.carId).eq('dealer_id', dealer.id).maybeSingle()
+    car = data
+  }
+
   // TODO(impl): validar/sanitizar phone/email; rate limiting; Turnstile.
   const lead = await createLead({
     dealerId: dealer.id,
     name: String(body.name),
     phone: String(body.phone),
     email: body.email ?? null,
-    carId: body.carId ?? null,
+    carId: car?.id ?? null,
     message: body.message ?? null,
     source
   })
 
   // Notifica al dealer. A prueba de fallos: nunca rompe la captura del lead.
   try {
-    let carLabel: string | undefined
-    if (body.carId) {
-      const { data: car } = await createAdminClient()
-        .from('cars').select('brand, model, year').eq('id', String(body.carId)).maybeSingle()
-      if (car) carLabel = `${car.brand} ${car.model} ${car.year}`
-    }
+    const carLabel = car ? `${car.brand} ${car.model} ${car.year}` : undefined
     const proto = host === 'localhost' || host.endsWith('.localhost') ? 'http' : 'https'
     await notifyNewLead({
       to: mergeContent(dealer.content).business.email,
