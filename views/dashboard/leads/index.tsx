@@ -8,14 +8,16 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { setLeadStatusAction, saveLeadNotesAction } from '@/app/dashboard/(panel)/leads/actions'
-import type { Lead, LeadStatus } from '@/interfaces/lead'
+import { LEAD_STATUSES, type Lead, type LeadStatus } from '@/interfaces/lead'
 
-const STATUS_VARIANT: Record<LeadStatus, 'cta' | 'secondary' | 'outline'> = {
+// Nuevo resalta porque es lo que hay que atender; perdido se apaga porque ya no.
+const STATUS_VARIANT: Record<LeadStatus, 'cta' | 'secondary' | 'default' | 'outline'> = {
   nuevo: 'cta',
   contactado: 'secondary',
-  cerrado: 'outline'
+  cita: 'secondary',
+  vendido: 'default',
+  perdido: 'outline'
 }
-const STATUSES: LeadStatus[] = ['nuevo', 'contactado', 'cerrado']
 
 function formatDate (iso: string) {
   return new Intl.DateTimeFormat('es-MX', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(iso))
@@ -32,18 +34,23 @@ export function LeadsView ({ leads: initialLeads }: { leads: Lead[] }) {
   const [, startTransition] = useTransition()
   const selected = leads.find((l) => l.id === selectedId) ?? null
 
-  const nuevos = leads.filter((l) => l.status === 'nuevo').length
-  const contactados = leads.filter((l) => l.status === 'contactado').length
+  const count = (s: LeadStatus) => leads.filter((l) => l.status === s).length
   const stats = [
     { label: 'Total', value: leads.length },
-    { label: 'Nuevos', value: nuevos },
-    { label: 'Contactados', value: contactados }
+    { label: 'Nuevos', value: count('nuevo') },
+    { label: 'Citas', value: count('cita') },
+    { label: 'Vendidos', value: count('vendido') }
   ]
 
   /** Cambia el estado: optimista en UI + persiste en la BD. */
   const setStatus = (id: string, status: LeadStatus) => {
+    const lead = leads.find((l) => l.id === id)
+    if (!lead || lead.status === status) return // el trigger tampoco registra un "cambio" al mismo estatus
     setError('')
-    setLeads((ls) => ls.map((l) => (l.id === id ? { ...l, status } : l)))
+    // El renglón real lo escribe el trigger de la 0011; este solo lo adelanta en
+    // pantalla y se reemplaza al revalidar.
+    const change = { from: lead.status, to: status, at: new Date().toISOString() }
+    setLeads((ls) => ls.map((l) => (l.id === id ? { ...l, status, history: [...l.history, change] } : l)))
     startTransition(async () => {
       const res = await setLeadStatusAction(id, status)
       if (res?.error) setError(res.error)
@@ -71,7 +78,7 @@ export function LeadsView ({ leads: initialLeads }: { leads: Lead[] }) {
         <p className="text-sm text-muted-foreground">Contactos capturados desde tu sitio. Haz clic para gestionar.</p>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {stats.map((s) => (
           <div key={s.label} className="rounded-xl border bg-card p-4">
             <p className="text-2xl font-bold tracking-tight">{s.value}</p>
@@ -144,7 +151,7 @@ export function LeadsView ({ leads: initialLeads }: { leads: Lead[] }) {
               <div>
                 <p className="mb-1.5 text-sm font-medium">Estado</p>
                 <div className="flex flex-wrap gap-2">
-                  {STATUSES.map((s) => (
+                  {LEAD_STATUSES.map((s) => (
                     <button
                       key={s}
                       onClick={() => setStatus(selected.id, s)}
@@ -158,6 +165,20 @@ export function LeadsView ({ leads: initialLeads }: { leads: Lead[] }) {
                   ))}
                 </div>
               </div>
+
+              {selected.history.length > 0 && (
+                <div>
+                  <p className="mb-1.5 text-sm font-medium">Historial</p>
+                  <ol className="space-y-1.5 border-l pl-3">
+                    {selected.history.slice().reverse().map((h, i) => (
+                      <li key={`${h.at}-${i}`} className="text-xs text-muted-foreground">
+                        <span className="font-medium capitalize text-foreground">{h.from ? h.to : 'Recibido'}</span>
+                        {' · '}{formatDate(h.at)}
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              )}
 
               <div>
                 <div className="mb-1.5 flex items-center justify-between">

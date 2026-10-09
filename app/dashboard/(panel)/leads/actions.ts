@@ -3,12 +3,15 @@
 import { revalidatePath } from 'next/cache'
 import { getCurrentDealer } from '@/services/dealers'
 import { updateLeadStatus, updateLeadNotes } from '@/services/leads'
-import type { LeadStatus } from '@/interfaces/lead'
+import { LEAD_STATUSES, type LeadStatus } from '@/interfaces/lead'
 
 /** Cambia el estado de un lead del dealer autenticado. */
 export async function setLeadStatusAction (leadId: string, status: LeadStatus): Promise<{ error?: string }> {
   const dealer = await getCurrentDealer()
   if (!dealer) return { error: 'No autorizado' }
+  // Una server action se puede llamar con cualquier valor; el CHECK de la 0010
+  // lo rechazaría igual, pero con un error de Postgres en vez de uno legible.
+  if (!LEAD_STATUSES.includes(status)) return { error: 'Estado no válido' }
   try {
     await updateLeadStatus(dealer.id, leadId, status)
   } catch (e) {
