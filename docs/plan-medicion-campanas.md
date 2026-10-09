@@ -135,8 +135,13 @@ lo trajo.
    - ✅ `cars.condition` (`nuevo`, `seminuevo`, `demo`) — hecho en
      `0009_car_condition.sql`, con campo en `CarForm`, filtro en catálogo y
      `?condicion=` en la URL de `/autos` para los links de campañas.
-   - Estatus de lead (migración aparte): `nuevo`, `contactado`, `cita`, `vendido`, `perdido`
-     (con `check`), y decidir la migración de `cerrado` (ver matiz 2).
+   - ✅ Estatus de lead: `nuevo`, `contactado`, `cita`, `vendido`, `perdido`
+     — hecho en `0010_lead_status.sql`. No había ningún lead en `cerrado`; por
+     seguridad la migración los pasa a `perdido`.
+   - ✅ Historial de cada cambio de estatus (`lead_status_history`, 0011),
+     escrito por trigger. Es la base de las métricas de seguimiento (tiempo a
+     primer contacto, conversión por etapa) y del registro de qué se le
+     reporta a Meta en la Fase 2.
    - `leads.sold_at timestamptz`, `leads.sale_amount numeric(12,2)` — el valor que
      se le reporta a Meta como compra y la base del costo por venta.
 5. **Ampliar la lista blanca de `source`:** `web_form`, `apartado`, `whatsapp`,
@@ -258,7 +263,6 @@ confirme que va a invertir en ese camino.
 
 Decisiones que hay que tomar antes de empezar:
 
-- ¿Qué pasa con los leads que hoy están en `cerrado`?
 - ¿Se pide el monto al marcar `vendido`, o se toma el precio del auto?
 - WhatsApp directo: ¿manual primero o Cloud API desde el inicio?
 - ¿Quién es dueño de la app de Meta: Vendra (una app para todos los dealers) o

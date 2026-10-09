@@ -44,7 +44,7 @@ export async function listLeads (dealerId: string): Promise<Lead[]> {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('leads')
-    .select('*, cars(brand, model, year)')
+    .select('*, cars(brand, model, year), lead_status_history(from_status, to_status, changed_at)')
     .eq('dealer_id', dealerId)
     .eq('is_active', true) // oculta los leads descartados (baja lógica)
     .order('created_at', { ascending: false })
@@ -57,7 +57,10 @@ export async function listLeads (dealerId: string): Promise<Lead[]> {
     carLabel: r.cars ? `${r.cars.brand} ${r.cars.model} ${r.cars.year}` : null,
     status: r.status,
     notes: r.notes ?? '', // '' si la columna aún no existe (migración 0004)
-    createdAt: r.created_at
+    createdAt: r.created_at,
+    history: (r.lead_status_history ?? [])
+      .map((h: any) => ({ from: h.from_status, to: h.to_status, at: h.changed_at }))
+      .sort((a: any, b: any) => a.at.localeCompare(b.at))
   }))
 }
 

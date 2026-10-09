@@ -50,14 +50,25 @@ Correr en orden si no están aplicadas (idempotentes):
 - `0003_soft_delete.sql` — columnas is_active/record_status/deleted_at + RLS + índices.
 - `0004_lead_notes.sql` — columna `notes` en leads. **(aplicada — verificado 04/sep/2026)**
 - `0005_domain_uniqueness.sql` — el dominio se libera al eliminar, no al suspender.
-  **Pendiente de aplicar.**
 - `0006_dealer_features_public_read.sql` — el storefront puede leer los flags del
-  dealer. **Pendiente de aplicar.**
+  dealer.
+- `0007_car_status_borrador.sql` y `0008_estatus_publicos.sql` — estatus
+  `borrador` y la RLS que solo bloquea borradores.
 - `0009_car_condition.sql` — condición del auto (`nuevo`, `seminuevo`, `demo`).
   Default `nuevo`; los autos existentes quedan como nuevos, salvo los de más de
-  1,000 km, que pasan a seminuevo. **Pendiente de
-  aplicar.** Sin ella el sitio se lee bien (todo cae a nuevo), pero guardar un
-  auto desde el panel falla.
+  1,000 km, que pasan a seminuevo.
+- `0010_lead_status.sql` — estatus del lead: `nuevo`, `contactado`, `cita`,
+  `vendido`, `perdido` (`cerrado` pasa a `perdido`). **Pendiente de aplicar.**
+- `0011_lead_status_history.sql` — historial de estatus del lead
+  (`lead_status_history`), escrito por un trigger. **Pendiente de aplicar**,
+  junto con la 0010 y antes del despliegue: sin ella el panel de leads falla.
+- `0012_updated_at.sql` — `updated_at` en `leads` y `cars`, mantenido por
+  trigger. **Pendiente de aplicar.**
+
+Hasta la `0009`, aplicadas en QA y en producción (verificado 09/oct/2026 con
+`migrate.mjs --status`). La forma de aplicarlas es `pnpm db:migrate` (QA, usa
+`.env`) o `node --env-file=.env.prod.local scripts/migrate.mjs` (producción);
+requiere `psql`.
 
 ## Decisiones clave (criterios del proyecto)
 - **Pendientes abiertos:** ver `docs/pendientes.md` — hallazgos de la validación de
