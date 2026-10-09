@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import type { Lead } from '@/interfaces/lead'
+import type { Lead, LeadOrigin } from '@/interfaces/lead'
 
 export interface CreateLeadInput {
   dealerId: string
@@ -10,6 +10,12 @@ export interface CreateLeadInput {
   carId?: string | null
   message?: string | null
   source?: string
+  /** Visitas de attribution_touches (ver services/attribution.ts). null = sin datos. */
+  firstTouchId?: string | null
+  lastTouchId?: string | null
+  visitorId?: string | null
+  /** Cookie _fbp del Pixel de Meta, si existe. */
+  fbp?: string | null
 }
 
 /**
@@ -21,22 +27,48 @@ export async function createLead (input: CreateLeadInput) {
   // Seguro porque solo se llama server-side con un dealerId ya validado
   // contra el tenant del middleware.
   const supabase = createAdminClient()
-  const { data, error } = await supabase
-    .from('leads')
-    .insert({
-      dealer_id: input.dealerId,
-      name: input.name,
-      phone: input.phone,
-      email: input.email ?? null,
-      car_id: input.carId ?? null,
-      message: input.message ?? null,
-      source: input.source ?? 'web_form',
-      status: 'nuevo'
-    })
-    .select()
-    .single()
+  const base = {
+    dealer_id: input.dealerId,
+    name: input.name,
+    phone: input.phone,
+    email: input.email ?? null,
+    car_id: input.carId ?? null,
+    message: input.message ?? null,
+    source: input.source ?? 'web_form',
+    status: 'nuevo'
+  }
+  const attribution = {
+    visitor_id: input.visitorId ?? null,
+    first_touch_id: input.firstTouchId ?? null,
+    last_touch_id: input.lastTouchId ?? null,
+    fbp: input.fbp ?? null
+  }
+
+  const insert = (row: object) => supabase.from('leads').insert(row).select('id').single()
+  let { data, error } = await insert({ ...base, ...attribution })
+  // Red de seguridad: si el código llega antes que la 0015, las columnas de
+  // atribución no existen y el insert completo falla. Perder el origen es malo;
+  // perder el lead es peor. Se reintenta sin ellas y se deja registro.
+  // PGRST204 = PostgREST no conoce la columna; 42703 = Postgres tampoco.
+  if (error && (error.code === 'PGRST204' || error.code === '42703')) {
+    console.error('[leads] faltan columnas de atribución (¿0015 sin aplicar?); lead guardado sin origen:', error.message)
+    ;({ data, error } = await insert(base))
+  }
   if (error) throw error
-  return data
+  return data!
+}
+
+/** Un renglón de attribution_touches al formato de la UI. */
+function toOrigin (t: any): LeadOrigin {
+  return {
+    source: t.source,
+    medium: t.medium,
+    campaign: t.campaign,
+    content: t.content,
+    term: t.term,
+    landing: t.landing_path,
+    referrer: t.referrer
+  }
 }
 
 /** Leads del dealer autenticado (RLS: solo ve los suyos), mapeados a la UI. */
@@ -50,6 +82,8 @@ export async function listLeads (dealerId: string): Promise<Lead[]> {
     .select(`*,
       car:cars!leads_car_id_fkey(brand, model, year, price),
       sold_car:cars!leads_sold_car_id_fkey(brand, model, year),
+      first_touch:attribution_touches!leads_first_touch_id_fkey(*),
+      last_touch:attribution_touches!leads_last_touch_id_fkey(*),
       lead_status_history(from_status, to_status, changed_at)`)
     .eq('dealer_id', dealerId)
     .eq('is_active', true) // oculta los leads descartados (baja lógica)
@@ -68,6 +102,12 @@ export async function listLeads (dealerId: string): Promise<Lead[]> {
     soldCarLabel: r.sold_car ? `${r.sold_car.brand} ${r.sold_car.model} ${r.sold_car.year}` : null,
     saleAmount: r.sale_amount != null ? Number(r.sale_amount) : null,
     notes: r.notes ?? '', // '' si la columna aún no existe (migración 0004)
+    form: r.source,
+    origin: r.last_touch ? toOrigin(r.last_touch) : null,
+    // El primer toque solo si fue otra visita: si es la misma, sería repetirlo.
+    firstOrigin: r.first_touch && r.first_touch.id !== r.last_touch?.id
+      ? { ...toOrigin(r.first_touch), at: r.first_touch.touched_at }
+      : null,
     createdAt: r.created_at,
     history: (r.lead_status_history ?? [])
       .map((h: any) => ({ from: h.from_status, to: h.to_status, at: h.changed_at }))

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import ResolveDealerMiddleware from '@/middlewares/ResolveDealerMiddleware'
 import DashboardAuthMiddleware, { isDashboardScope } from '@/middlewares/DashboardAuthMiddleware'
+import AttributionMiddleware from '@/middlewares/AttributionMiddleware'
 import { DEALER_ID_HEADER, DEALER_DOMAIN_HEADER } from '@/lib/tenant'
 import { isIndexable } from '@/lib/seo'
 
@@ -75,7 +76,10 @@ async function route (req: NextRequest) {
     return new DashboardAuthMiddleware().handle(req, requestHeaders)
   }
 
-  return NextResponse.next({ request: { headers: requestHeaders } })
+  const res = NextResponse.next({ request: { headers: requestHeaders } })
+  // Solo el storefront: el panel del dealer no es una visita de un cliente.
+  if (!isDashboardScope(pathname)) new AttributionMiddleware().apply(req, res, host)
+  return res
 }
 
 export const config = {

@@ -4,6 +4,8 @@ import { createLead } from '@/services/leads'
 import { notifyNewLead } from '@/services/notifications'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { mergeContent } from '@/lib/content'
+import { ATTR_COOKIE, VISITOR_COOKIE, isUuid, parseAttribution } from '@/lib/attribution'
+import { saveTouches } from '@/services/attribution'
 
 /**
  * POST /api/leads — captura un lead desde el sitio público.
@@ -33,14 +35,22 @@ export async function POST (req: NextRequest) {
   // ESTE dealer. Si no, el lead se guarda sin auto en vez de perderse (el
   // trigger de la 0013 rechazaría el insert completo). La forma de uuid se
   // revisa antes porque Postgres truena con un id mal formado.
-  const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
   let car: { id: string; brand: string; model: string; year: number } | null = null
-  if (typeof body.carId === 'string' && UUID.test(body.carId)) {
+  if (isUuid(body.carId)) {
     const { data } = await createAdminClient()
       .from('cars').select('id, brand, model, year')
       .eq('id', body.carId).eq('dealer_id', dealer.id).maybeSingle()
     car = data
   }
+
+  // De dónde llegó: lo anotó el middleware en cookies del dominio del dealer, y
+  // el navegador las manda con este fetch. Se leen aquí y no del body para que
+  // el formulario no tenga que saber nada de campañas. Las visitas se guardan
+  // en attribution_touches y el lead solo las referencia.
+  const rawVisitor = req.cookies.get(VISITOR_COOKIE)?.value
+  const visitorId = isUuid(rawVisitor) ? rawVisitor : null
+  const touches = await saveTouches(dealer.id, visitorId, parseAttribution(req.cookies.get(ATTR_COOKIE)?.value))
+  const fbp = req.cookies.get('_fbp')?.value?.slice(0, 255) ?? null
 
   // TODO(impl): validar/sanitizar phone/email; rate limiting; Turnstile.
   const lead = await createLead({
@@ -50,7 +60,10 @@ export async function POST (req: NextRequest) {
     email: body.email ?? null,
     carId: car?.id ?? null,
     message: body.message ?? null,
-    source
+    source,
+    ...touches,
+    visitorId,
+    fbp
   })
 
   // Notifica al dealer. A prueba de fallos: nunca rompe la captura del lead.
@@ -68,5 +81,7 @@ export async function POST (req: NextRequest) {
     console.error('[api/leads] fallo notificando (ignorado):', e)
   }
 
-  return NextResponse.json({ ok: true, lead }, { status: 201 })
+  // Solo el id: el renglón completo trae notas, ids de clic y de visitante que
+  // el navegador no necesita.
+  return NextResponse.json({ ok: true, id: lead.id }, { status: 201 })
 }

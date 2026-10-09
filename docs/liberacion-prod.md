@@ -142,6 +142,10 @@ redirigir la raíz.
 
 Pendiente. Su dominio está en Neubox.
 
+Seguir la checklist [Conectar el dominio del dealer](onboarding-vendedores.md#conectar-el-dominio-del-dealer):
+la redirección `308` de la versión no canónica (con o sin `www`) a la canónica
+es obligatoria. Sin ella se pierde la atribución de campañas.
+
 ## Fase 5 — Correos de leads
 
 Pendiente. Se deja para el final por decisión propia.

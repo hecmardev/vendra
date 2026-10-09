@@ -155,6 +155,12 @@ Para dealers no hay equivalente.
 Hoy se compensa configurando el redirect en Vercel, pero eso depende de que quien
 dé de alta al dealer se acuerde — y el default de Vercel es justo el contrario.
 
+Desde la atribución de campañas (0015) esto pesa más: aunque el middleware
+aceptara las dos versiones, cada una tendría sus propias cookies y un lead que
+cambie de una a otra perdería la campaña. Por eso la redirección quedó como paso
+obligatorio en `onboarding-vendedores.md` § Conectar el dominio del dealer, y el
+arreglo de abajo es una red de seguridad, no un sustituto.
+
 El arreglo natural: reintentar la búsqueda quitando el `www.` cuando la primera
 falla.
 

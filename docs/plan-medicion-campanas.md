@@ -93,6 +93,20 @@ depender de ninguna integración con Meta.
 **Objetivo:** cada lead del sitio queda con la campaña, el anuncio y el canal que
 lo trajo.
 
+> **Pasos 1, 2, 3 y 7 hechos** en `lib/attribution.ts`,
+> `middlewares/AttributionMiddleware.ts`, `services/attribution.ts` y
+> `0015_lead_attribution.sql`. Detalles que cambiaron respecto a lo planeado:
+> el origen NO va en columnas de `leads` sino en la tabla `attribution_touches`
+> (una visita con origen por renglón), y el lead solo la referencia con
+> `first_touch_id` / `last_touch_id`, para que el mismo origen sirva a varios
+> leads de una persona y a las vistas de fichas; `fbclid` sin UTM se clasifica como
+> `facebook`/`instagram` + `social` (Meta lo agrega también a enlaces orgánicos,
+> así que sin UTM no se sabe si fue anuncio); el "último toque" solo se
+> reemplaza con una visita que trae origen, no con navegación interna ni con
+> volver directo; la ruta de aterrizaje se guarda sin query. `external_id` y los
+> ids de Meta se quedan para la Fase 3. El filtro por campaña del panel queda
+> para el reporte (Fase 5).
+
 1. **Cookie de atribución en el middleware.** En la primera página que se carga
    (`middleware.ts`, rama de dealer), leer de la URL `utm_source`, `utm_medium`,
    `utm_campaign`, `utm_content`, `utm_term`, `fbclid`, `gclid`, más el `Referer`

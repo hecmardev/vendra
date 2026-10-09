@@ -12,6 +12,17 @@ export interface LeadStatusChange {
   at: string // ISO
 }
 
+/** De dónde llegó el lead (0015). Ver lib/attribution.ts. */
+export interface LeadOrigin {
+  source: string
+  medium: string | null
+  campaign: string | null
+  content: string | null
+  term: string | null
+  landing: string | null
+  referrer: string | null
+}
+
 /** Lead para la UI del panel. */
 export interface Lead {
   id: string
@@ -29,6 +40,12 @@ export interface Lead {
   soldCarLabel: string | null
   saleAmount: number | null
   notes: string
+  /** Formulario por el que entró: web_form, apartado, whatsapp. */
+  form: string
+  /** Último toque con origen. null = lead sin datos de sitio (anterior a la 0015, o sin cookie). */
+  origin: LeadOrigin | null
+  /** Primer toque, si fue distinto del último. */
+  firstOrigin: (LeadOrigin & { at: string }) | null
   createdAt: string // ISO
   /** Del más antiguo al más reciente. */
   history: LeadStatusChange[]

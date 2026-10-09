@@ -17,6 +17,8 @@ Son 5 pasos; solo 1–2 los captura el admin, el resto los completa el propio ve
    que lo vincula a su `dealer_id` (esta es la fuente de verdad para el aislamiento por RLS).
 3. **Enviarle acceso** → invitación por correo (Supabase) para que fije su contraseña.
 4. **Conectar su dominio** → CNAME en Vercel apuntando al proyecto (paso manual/externo).
+   Ver la checklist [Conectar el dominio del dealer](#conectar-el-dominio-del-dealer):
+   la redirección de `www` es **obligatoria**.
 5. **El vendedor configura lo suyo** desde `su-dominio.com/dashboard`:
    - Branding (colores/tema) y contenido (textos/slogans).
    - Sus IDs de marketing (Meta Pixel, GA4, número de WhatsApp).
@@ -24,6 +26,38 @@ Son 5 pasos; solo 1–2 los captura el admin, el resto los completa el propio ve
 
 **Aislamiento garantizado:** Row Level Security por `dealer_id` — un vendedor nunca
 ve ni edita datos de otro, ni siquiera si conoce el ID.
+
+---
+
+## Conectar el dominio del dealer
+
+Checklist para cada dealer con dominio propio. **Ningún paso es opcional.**
+
+- [ ] **Elegir la versión canónica** del dominio: `sudominio.com` o
+      `www.sudominio.com`. Recomendado sin `www`, igual que la plataforma. Si el
+      DNS del dealer no permite un CNAME en la raíz (pasa con Neubox, ver
+      `liberacion-prod.md` § Fase 3), la canónica es la de `www`.
+- [ ] **`dealers.domain` = exactamente la versión canónica.** El middleware busca
+      el host exacto: la otra versión sirve `/not-available` si no redirige.
+- [ ] **Agregar las DOS versiones en Vercel** (proyecto de producción, Settings →
+      Domains), copiando el Target que muestre su propia pantalla.
+- [ ] **La versión no canónica redirige a la canónica con `308` permanente.**
+      Vercel hace por default lo contrario (manda la raíz al `www`): revisarlo a
+      mano. `307` no sirve: reparte el posicionamiento entre las dos.
+- [ ] **Verificar que la redirección conserve la URL completa**, ruta y
+      parámetros:
+      ```bash
+      curl -sI "https://www.sudominio.com/autos?utm_source=prueba" | grep -i -E '^(HTTP|location)'
+      ```
+      Debe responder `308` con `location: https://sudominio.com/autos?utm_source=prueba`.
+
+**Por qué es obligatorio:** el navegador trata `www.sudominio.com` y
+`sudominio.com` como sitios distintos y no comparte cookies entre ellos. Si las
+dos versiones sirven el sitio, alguien que llega por un anuncio a una y vuelve
+después a la otra empieza con cookies nuevas, y **el lead pierde la campaña que
+lo trajo** (ver `lib/attribution.ts`). Con la redirección, todo el tráfico
+termina en un solo dominio y la atribución se conserva. Si la redirección
+perdiera los parámetros, se perderían los UTM del anuncio en el primer clic.
 
 ---
 
