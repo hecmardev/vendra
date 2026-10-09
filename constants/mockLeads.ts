@@ -1,7 +1,7 @@
 import type { Lead } from '@/interfaces/lead'
 
 /** Leads mock para maquetación del panel. Se reemplazan por listLeads(dealerId). */
-export const MOCK_LEADS: Omit<Lead, 'notes' | 'history'>[] = [
+export const MOCK_LEADS: Pick<Lead, 'id' | 'name' | 'phone' | 'email' | 'carLabel' | 'status' | 'createdAt'>[] = [
   { id: 'l1', name: 'Ana Ramírez', phone: '55 1234 5678', email: 'ana@correo.com', carLabel: 'Mazda CX-5 2022', status: 'nuevo', createdAt: '2026-07-14T18:20:00Z' },
   { id: 'l2', name: 'Carlos Méndez', phone: '55 8765 4321', email: 'carlos@correo.com', carLabel: 'Ford Ranger 2023', status: 'nuevo', createdAt: '2026-07-14T15:05:00Z' },
   { id: 'l3', name: 'Laura Torres', phone: '55 2222 3333', email: null, carLabel: 'Toyota Corolla 2021', status: 'contactado', createdAt: '2026-07-13T11:40:00Z' },

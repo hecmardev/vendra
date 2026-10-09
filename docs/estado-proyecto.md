@@ -58,14 +58,19 @@ Correr en orden si no están aplicadas (idempotentes):
   Default `nuevo`; los autos existentes quedan como nuevos, salvo los de más de
   1,000 km, que pasan a seminuevo.
 - `0010_lead_status.sql` — estatus del lead: `nuevo`, `contactado`, `cita`,
-  `vendido`, `perdido` (`cerrado` pasa a `perdido`). **Pendiente de aplicar.**
+  `vendido`, `perdido` (`cerrado` pasa a `perdido`).
 - `0011_lead_status_history.sql` — historial de estatus del lead
-  (`lead_status_history`), escrito por un trigger. **Pendiente de aplicar**,
-  junto con la 0010 y antes del despliegue: sin ella el panel de leads falla.
+  (`lead_status_history`), escrito por un trigger.
 - `0012_updated_at.sql` — `updated_at` en `leads` y `cars`, mantenido por
-  trigger. **Pendiente de aplicar.**
+  trigger.
+- `0013_lead_sale.sql` — `leads.sold_car_id` y `leads.sale_amount`; un trigger
+  los borra si el lead sale de vendido y valida que `car_id`/`sold_car_id` sean
+  del mismo dealer. **Pendiente de aplicar**, antes del despliegue: sin ella el
+  panel de leads falla.
+- `0014_car_status_history.sql` — historial de estatus y precio de los autos
+  (`car_status_history`), escrito por un trigger. **Pendiente de aplicar.**
 
-Hasta la `0009`, aplicadas en QA y en producción (verificado 09/oct/2026 con
+Hasta la `0012`, aplicadas en QA y en producción (verificado 09/oct/2026 con
 `migrate.mjs --status`). La forma de aplicarlas es `pnpm db:migrate` (QA, usa
 `.env`) o `node --env-file=.env.prod.local scripts/migrate.mjs` (producción);
 requiere `psql`.

@@ -55,7 +55,7 @@ teléfono, auto). Además:
 | WhatsApp directo llega al panel | ❌ El chat va directo al teléfono del dealer y nunca toca el sitio | WhatsApp Cloud API o captura manual (Fase 4) |
 | Estatus contactado / cita / vendido | ⚠️ Hoy hay `nuevo`, `contactado`, `cerrado`. Faltan `cita`, `vendido`, `perdido` | Migración de estatus |
 | El sitio avisa a Meta al cambiar estatus | ❌ No existe | Conversions API (Fase 2) |
-| Comparar por costo por venta | ❌ No hay gasto por campaña ni monto de venta | Reporte (Fase 5) |
+| Comparar por costo por venta | ⚠️ Ya hay monto de venta (0013); falta el gasto por campaña | Reporte (Fase 5) |
 | Los sitios de Kia sirven en Google como segmento | ✅ Es configuración de Google Ads, no requiere código | — |
 
 ### Matices al plan
@@ -142,8 +142,12 @@ lo trajo.
      escrito por trigger. Es la base de las métricas de seguimiento (tiempo a
      primer contacto, conversión por etapa) y del registro de qué se le
      reporta a Meta en la Fase 2.
-   - `leads.sold_at timestamptz`, `leads.sale_amount numeric(12,2)` — el valor que
-     se le reporta a Meta como compra y la base del costo por venta.
+   - ✅ `leads.sold_car_id` y `leads.sale_amount` (0013): qué auto se compró
+     —puede no ser el de interés— y en cuánto. Es el valor que se le reporta a
+     Meta como compra y la base del costo por venta. La fecha de venta sale de
+     `lead_status_history`, no de una columna aparte.
+   - ✅ Historial de estatus y precio de los autos (`car_status_history`,
+     0014): días en inventario, apartados que se caen, efecto de bajar precio.
 5. **Ampliar la lista blanca de `source`:** `web_form`, `apartado`, `whatsapp`,
    `whatsapp_click`, `meta_form`, `whatsapp_ad`, `manual`.
 6. **Clics de WhatsApp sin datos.** `WhatsAppFloat` y el botón de Contacto mandan un
@@ -263,7 +267,6 @@ confirme que va a invertir en ese camino.
 
 Decisiones que hay que tomar antes de empezar:
 
-- ¿Se pide el monto al marcar `vendido`, o se toma el precio del auto?
 - WhatsApp directo: ¿manual primero o Cloud API desde el inicio?
 - ¿Quién es dueño de la app de Meta: Vendra (una app para todos los dealers) o
   cada dealer? Recomendado: una sola app de Vendra, con un token por dealer.
