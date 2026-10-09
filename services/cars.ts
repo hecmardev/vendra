@@ -37,6 +37,7 @@ function rowToCar (row: any): Car {
     bodyType: row.body_type,
     location: row.location,
     status: row.status,
+    condition: row.condition ?? 'nuevo', // mismo default que la 0009
     description: row.description ?? undefined,
     images
   }
@@ -147,6 +148,7 @@ export interface CarInput {
   bodyType: string
   location: string
   status: string
+  condition: string
   description?: string | null
   /** URLs públicas de las fotos, en el orden en que se muestran. */
   images?: string[]
@@ -185,6 +187,7 @@ function toRow (input: CarInput) {
     body_type: input.bodyType,
     location: input.location,
     status: input.status,
+    condition: input.condition,
     description: input.description ?? null
   }
 }

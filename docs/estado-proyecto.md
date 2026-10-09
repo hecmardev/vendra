@@ -53,6 +53,11 @@ Correr en orden si no están aplicadas (idempotentes):
   **Pendiente de aplicar.**
 - `0006_dealer_features_public_read.sql` — el storefront puede leer los flags del
   dealer. **Pendiente de aplicar.**
+- `0009_car_condition.sql` — condición del auto (`nuevo`, `seminuevo`, `demo`).
+  Default `nuevo`; los autos existentes quedan como nuevos, salvo los de más de
+  1,000 km, que pasan a seminuevo. **Pendiente de
+  aplicar.** Sin ella el sitio se lee bien (todo cae a nuevo), pero guardar un
+  auto desde el panel falla.
 
 ## Decisiones clave (criterios del proyecto)
 - **Pendientes abiertos:** ver `docs/pendientes.md` — hallazgos de la validación de

@@ -119,10 +119,14 @@ catálogo los tratan como valores distintos.
 
 Con seis autos no se nota. Con doscientos, los filtros dejan de servir.
 
-### Falta distinguir nuevo de seminuevo
+### ~~Falta distinguir nuevo de seminuevo~~ (resuelto en la 0009)
 
-No existe el campo. Si un lote maneja ambos, hoy no puede separarlos ni en la
-ficha ni en los filtros.
+`cars.condition` con `nuevo`, `seminuevo` y `demo`. Se captura en el formulario
+del auto, se muestra en la tarjeta y la ficha, y el catálogo filtra por ella
+cuando el lote tiene más de una (`?condicion=` en la URL).
+
+Queda abierto: **"certificado"** como marca aparte del seminuevo (no como
+condición, para que el filtro de seminuevos no deje fuera a los certificados).
 
 ### La calculadora usa valores fijos
 

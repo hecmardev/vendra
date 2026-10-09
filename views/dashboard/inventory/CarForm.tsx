@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Combo } from '@/components/common/combo'
 import { cn } from '@/lib/utils'
 import { saveCarAction, uploadCarPhotoAction } from '@/app/dashboard/(panel)/inventario/actions'
-import type { Car } from '@/interfaces/car'
+import { CAR_CONDITIONS, type Car } from '@/interfaces/car'
 
 const TRANSMISSIONS = ['Automática', 'Manual', 'CVT']
 const FUELS = ['Gasolina', 'Diésel', 'Híbrido', 'Eléctrico']
@@ -69,7 +69,7 @@ export function CarForm ({ car }: { car?: Car }) {
   const [form, setForm] = useState<Partial<Car>>(
     // Un auto nuevo nace en borrador: no sale al sitio hasta que el dealer lo
     // publique, para que no se vea a medio llenar mientras lo captura.
-    car ?? { status: 'borrador', transmission: 'Automática', fuel: 'Gasolina' }
+    car ?? { status: 'borrador', condition: 'nuevo', transmission: 'Automática', fuel: 'Gasolina' }
   )
   const [error, setError] = useState('')
   const [uploading, setUploading] = useState(0)
@@ -114,7 +114,8 @@ export function CarForm ({ car }: { car?: Car }) {
         brand: canonical(form.brand!, BRANDS), model: form.model!.trim(), year: Number(form.year), price: Number(form.price),
         mileage: Number(form.mileage ?? 0), transmission: form.transmission ?? 'Automática',
         fuel: form.fuel ?? 'Gasolina', color: form.color ?? '', bodyType: canonical(form.bodyType!, BODY_TYPES),
-        location: form.location ?? '', status: form.status ?? 'disponible', description: form.description ?? null,
+        location: form.location ?? '', status: form.status ?? 'disponible', condition: form.condition ?? 'nuevo',
+        description: form.description ?? null,
         images: form.images ?? []
       })
       if (res?.error) setError(res.error)
@@ -202,6 +203,7 @@ export function CarForm ({ car }: { car?: Car }) {
       <section className="rounded-xl border bg-card p-6">
         <h2 className="mb-4 font-bold">Datos del auto</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <Field label="Condición"><Combo value={form.condition ?? 'nuevo'} onChange={(v) => set('condition', v as Car['condition'])} options={CAR_CONDITIONS} placeholder="Elige condición" capitalizar /></Field>
           <Field label="Marca"><Combo value={form.brand ?? ''} onChange={(v) => set('brand', v)} options={BRANDS} placeholder="Elige una marca" buscar="Buscar marca…" /></Field>
           <Field label="Modelo"><Input value={form.model ?? ''} onChange={(e) => set('model', e.target.value)} placeholder="CX-5 Grand Touring" /></Field>
           <Field label="Año"><Input type="number" value={form.year ?? ''} onChange={(e) => set('year', Number(e.target.value))} placeholder="2022" /></Field>

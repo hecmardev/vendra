@@ -14,7 +14,8 @@ export async function generateMetadata ({ params }: { params: Promise<{ slug: st
   if (!car) return { title: `Auto no encontrado — ${name}` }
 
   const title = `${car.brand} ${car.model} ${car.year} — ${name}`
-  const description = car.description ?? `${car.brand} ${car.model} ${car.year}, ${formatPrice(car.price)}. Seminuevo verificado en ${name}.`
+  const condition = { nuevo: 'Nuevo', seminuevo: 'Seminuevo verificado', demo: 'Auto demo' }[car.condition]
+  const description = car.description ?? `${car.brand} ${car.model} ${car.year}, ${formatPrice(car.price)}. ${condition} en ${name}.`
   return {
     title,
     description,

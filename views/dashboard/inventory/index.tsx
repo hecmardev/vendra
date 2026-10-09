@@ -220,7 +220,7 @@ export function InventoryView ({ cars: initialCars }: { cars: Car[] }) {
                       </span>
                       <div className="min-w-0">
                         <p className="truncate font-medium">{car.brand} {car.model}</p>
-                        <p className="text-xs text-muted-foreground">{car.bodyType} · {car.location}</p>
+                        <p className="text-xs text-muted-foreground"><span className="capitalize">{car.condition}</span> · {car.bodyType} · {car.location}</p>
                       </div>
                     </div>
                   </td>
@@ -285,7 +285,7 @@ export function InventoryView ({ cars: initialCars }: { cars: Car[] }) {
                   ]} />
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground">{car.year} · {car.bodyType} · {formatMileage(car.mileage)}</p>
+              <p className="text-xs text-muted-foreground">{car.year} · <span className="capitalize">{car.condition}</span> · {car.bodyType} · {formatMileage(car.mileage)}</p>
               <div className="mt-2 flex items-center justify-between">
                 <p className="font-bold">{formatPrice(car.price)}</p>
                 <Badge variant={STATUS_VARIANT[car.status]} className="capitalize">{car.status}</Badge>
@@ -348,7 +348,7 @@ export function InventoryView ({ cars: initialCars }: { cars: Car[] }) {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h3 className="text-lg font-semibold leading-tight">{detail.brand} {detail.model}</h3>
-                    <p className="text-sm text-muted-foreground">{detail.year} · {detail.location}</p>
+                    <p className="text-sm text-muted-foreground">{detail.year} · <span className="capitalize">{detail.condition}</span> · {detail.location}</p>
                   </div>
                   <Badge variant={STATUS_VARIANT[detail.status]} className="capitalize">{detail.status}</Badge>
                 </div>
