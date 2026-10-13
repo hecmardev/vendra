@@ -96,6 +96,9 @@ el despliegue (ver `docs/liberacion-prod.md`).
   QA y decisiones de producto sin resolver.
 - **Mapa de vistas del dealer:** ver `docs/vistas-dealer.md` (storefront, dashboard,
   módulos y lo que hay detrás).
+- **Analítica:** ver `docs/analitica.md` — qué se puede medir con los datos que
+  ya se guardan (vistas, leads, campañas, historiales), cómo calcularlo, con qué
+  cuidados y qué falta. Mapa para la futura sección de Analítica del panel.
 - **Dos ambientes con bases separadas:** QA (`test.vendra.com.mx`) y producción
   (`vendra.com.mx`), cada uno con su proyecto de Supabase y de Vercel. La base
   actual pasa a ser QA. Ver `docs/entornos-qa-prod.md`.
