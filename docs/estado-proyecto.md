@@ -71,12 +71,15 @@ Correr en orden si no están aplicadas (idempotentes):
 - `0015_lead_attribution.sql` — tabla `attribution_touches` (visitas con
   origen: UTM, ids de clic, buscador, sitio que refirió, página de entrada) y en
   `leads` solo las referencias `first_touch_id` / `last_touch_id`, más
-  `visitor_id` y `fbp`. **Pendiente de aplicar**, antes del despliegue: sin ella
-  el panel de leads falla. `/api/leads` sí aguanta: guarda el lead sin origen
-  (y lo registra en el log) en vez de perderlo, pero esos leads quedan sin
-  campaña para siempre.
+  `visitor_id` y `fbp`. `/api/leads` aguanta que falte: guarda el lead sin
+  origen (y lo registra en el log) en vez de perderlo.
+- `0016_car_views.sql` — vistas de fichas: un renglón por auto + visitante +
+  día de México, con `views` y la visita de origen (`touch_id`). Solo se
+  escribe con la función `record_car_view` (service role, desde `/api/views`).
+  **Pendiente de aplicar.** Sin ella las vistas no se registran y el panel no
+  muestra "Autos que vio", pero nada falla.
 
-Hasta la `0014`, aplicadas en QA y en producción (verificado 09/oct/2026 con
+Hasta la `0015`, aplicadas en QA y en producción (verificado 09/oct/2026 con
 `migrate.mjs --status`). Requiere `psql`. Cómo aplicarlas:
 
 - **QA:** `pnpm db:migrate` (usa `.env`).

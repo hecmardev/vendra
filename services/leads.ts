@@ -108,6 +108,8 @@ export async function listLeads (dealerId: string): Promise<Lead[]> {
     firstOrigin: r.first_touch && r.first_touch.id !== r.last_touch?.id
       ? { ...toOrigin(r.first_touch), at: r.first_touch.touched_at }
       : null,
+    visitorId: r.visitor_id ?? null,
+    viewedCars: [], // los llena la página con listViewedCarsByVisitor (services/views)
     createdAt: r.created_at,
     history: (r.lead_status_history ?? [])
       .map((h: any) => ({ from: h.from_status, to: h.to_status, at: h.changed_at }))

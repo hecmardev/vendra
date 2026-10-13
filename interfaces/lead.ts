@@ -23,6 +23,18 @@ export interface LeadOrigin {
   referrer: string | null
 }
 
+/** Un auto cuya ficha abrió el visitante del lead (car_views, 0016). */
+export interface ViewedCar {
+  carId: string
+  label: string
+  /** Vistas totales (suma de todos los días). */
+  views: number
+  /** En cuántos días distintos la abrió. */
+  days: number
+  firstViewedAt: string // ISO
+  lastViewedAt: string // ISO
+}
+
 /** Lead para la UI del panel. */
 export interface Lead {
   id: string
@@ -46,6 +58,10 @@ export interface Lead {
   origin: LeadOrigin | null
   /** Primer toque, si fue distinto del último. */
   firstOrigin: (LeadOrigin & { at: string }) | null
+  /** Id anónimo del navegador (cookie vd_vid). Une leads y vistas de la misma persona. */
+  visitorId: string | null
+  /** Fichas que abrió ese visitante, antes y después de escribir. */
+  viewedCars: ViewedCar[]
   createdAt: string // ISO
   /** Del más antiguo al más reciente. */
   history: LeadStatusChange[]

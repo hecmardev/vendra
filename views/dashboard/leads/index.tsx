@@ -226,6 +226,28 @@ export function LeadsView ({ leads: initialLeads, saleOptions }: { leads: Lead[]
                 </dl>
               </div>
 
+              {selected.viewedCars.length > 0 && (
+                <div>
+                  <p className="mb-1.5 text-sm font-medium">Autos que vio ({selected.viewedCars.length})</p>
+                  <ul className="space-y-1.5">
+                    {selected.viewedCars.map((v) => (
+                      <li key={v.carId} className="text-xs">
+                        <p className="font-medium">
+                          {v.label}
+                          {v.carId === selected.carId && <span className="ml-1.5 font-normal text-cta">· preguntó por este</span>}
+                          {v.carId === selected.soldCarId && <span className="ml-1.5 font-normal text-cta">· lo compró</span>}
+                        </p>
+                        <p className="text-muted-foreground">
+                          {v.views} {v.views === 1 ? 'vista' : 'vistas'}
+                          {v.days > 1 && ` en ${v.days} días`}
+                          {' · última '}{formatDate(v.lastViewedAt)}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               <div>
                 <p className="mb-1.5 text-sm font-medium">Estado</p>
                 <div className="flex flex-wrap gap-2">

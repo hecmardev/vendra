@@ -13,6 +13,7 @@ import { ReserveDialog } from './components/ReserveDialog'
 import { WhatsAppDialog } from './components/WhatsAppDialog'
 import { Gallery } from './components/Gallery'
 import { Specs } from './components/Specs'
+import { CarViewBeacon } from './components/CarViewBeacon'
 
 /** Origen público del dealer (para URLs absolutas del JSON-LD). */
 function dealerOrigin (domain: string): string {
@@ -86,6 +87,7 @@ export async function CarDetail ({ slug }: { slug: string }) {
       <Navbar dealerName={businessName} />
       <main className="flex-1">
         <div className="container py-6">
+          <CarViewBeacon carId={car.id} />
           <Breadcrumb car={car} baseUrl={baseUrl} />
           <script
             type="application/ld+json"
