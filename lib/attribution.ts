@@ -69,6 +69,19 @@ const SOCIAL: Record<string, string> = {
   'whatsapp.com': 'whatsapp'
 }
 
+// Correo web y apps de correo. Van antes que los buscadores: `mail.google.com`
+// contiene "google" y sin esto contaría como Google orgánico. Las apps de
+// Android mandan el referer como android-app://<paquete>.
+const EMAIL: Record<string, string> = {
+  'mail.google.com': 'gmail',
+  'com.google.android.gm': 'gmail',
+  'outlook.live.com': 'outlook',
+  'outlook.office.com': 'outlook',
+  'outlook.office365.com': 'outlook',
+  'com.microsoft.office.outlook': 'outlook',
+  'mail.yahoo.com': 'yahoo'
+}
+
 const bareHost = (h: string) => h.toLowerCase().replace(/^www\./, '')
 
 /** El host de un Referer, o null si no hay o es del mismo sitio. */
@@ -84,6 +97,8 @@ function externalHost (referer: string | null, ownHost: string): string | null {
 
 /** facebook / instagram / google… a partir del host que refirió. */
 function classifyHost (host: string): { source: string; medium: string } {
+  if (EMAIL[host]) return { source: EMAIL[host], medium: 'email' }
+  if (/^(web)?mail\./.test(host)) return { source: host, medium: 'email' }
   for (const [domain, name] of Object.entries(SOCIAL)) {
     if (host === domain || host.endsWith(`.${domain}`)) return { source: name, medium: 'social' }
   }
@@ -183,7 +198,8 @@ export function parseAttribution (raw: string | undefined): Attribution | null {
 const NAMES: Record<string, string> = {
   google: 'Google', facebook: 'Facebook', instagram: 'Instagram', meta: 'Meta',
   bing: 'Bing', yahoo: 'Yahoo', duckduckgo: 'DuckDuckGo', tiktok: 'TikTok',
-  youtube: 'YouTube', twitter: 'X', linkedin: 'LinkedIn', whatsapp: 'WhatsApp'
+  youtube: 'YouTube', twitter: 'X', linkedin: 'LinkedIn', whatsapp: 'WhatsApp',
+  gmail: 'Gmail', outlook: 'Outlook'
 }
 const PAID = ['cpc', 'ppc', 'paid', 'paid_social', 'paidsocial', 'display', 'cpm']
 
@@ -196,5 +212,6 @@ export function originLabel (source: string | null, medium: string | null): stri
   if (medium === 'organic') return `${name} · orgánico`
   if (medium === 'social') return `${name} · publicación`
   if (medium === 'referral') return `${name} · enlace`
+  if (medium === 'email') return `${name} · correo`
   return name
 }

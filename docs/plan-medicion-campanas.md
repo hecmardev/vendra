@@ -162,6 +162,11 @@ lo trajo.
      `lead_status_history`, no de una columna aparte.
    - ✅ Historial de estatus y precio de los autos (`car_status_history`,
      0014): días en inventario, apartados que se caen, efecto de bajar precio.
+   - ✅ Vistas de fichas (`car_views`, 0016): un renglón por auto + visitante +
+     día de México, con el número de vistas y la visita de origen. Las manda
+     la ficha con `sendBeacon` a `/api/views`. El detalle del lead muestra
+     "Autos que vio". Permite contar fichas vistas por campaña aunque la
+     persona no escriba, y saber qué más vio quien sí escribió.
 5. **Ampliar la lista blanca de `source`:** `web_form`, `apartado`, `whatsapp`,
    `whatsapp_click`, `meta_form`, `whatsapp_ad`, `manual`.
 6. **Clics de WhatsApp sin datos.** `WhatsAppFloat` y el botón de Contacto mandan un

@@ -71,12 +71,15 @@ Correr en orden si no están aplicadas (idempotentes):
 - `0015_lead_attribution.sql` — tabla `attribution_touches` (visitas con
   origen: UTM, ids de clic, buscador, sitio que refirió, página de entrada) y en
   `leads` solo las referencias `first_touch_id` / `last_touch_id`, más
-  `visitor_id` y `fbp`. **Pendiente de aplicar**, antes del despliegue: sin ella
-  el panel de leads falla. `/api/leads` sí aguanta: guarda el lead sin origen
-  (y lo registra en el log) en vez de perderlo, pero esos leads quedan sin
-  campaña para siempre.
+  `visitor_id` y `fbp`. `/api/leads` aguanta que falte: guarda el lead sin
+  origen (y lo registra en el log) en vez de perderlo.
+- `0016_car_views.sql` — vistas de fichas: un renglón por auto + visitante +
+  día de México, con `views` y la visita de origen (`touch_id`). Solo se
+  escribe con la función `record_car_view` (service role, desde `/api/views`).
+  **Pendiente de aplicar.** Sin ella las vistas no se registran y el panel no
+  muestra "Autos que vio", pero nada falla.
 
-Hasta la `0014`, aplicadas en QA y en producción (verificado 09/oct/2026 con
+Hasta la `0015`, aplicadas en QA y en producción (verificado 09/oct/2026 con
 `migrate.mjs --status`). Requiere `psql`. Cómo aplicarlas:
 
 - **QA:** `pnpm db:migrate` (usa `.env`).
@@ -93,6 +96,9 @@ el despliegue (ver `docs/liberacion-prod.md`).
   QA y decisiones de producto sin resolver.
 - **Mapa de vistas del dealer:** ver `docs/vistas-dealer.md` (storefront, dashboard,
   módulos y lo que hay detrás).
+- **Analítica:** ver `docs/analitica.md` — qué se puede medir con los datos que
+  ya se guardan (vistas, leads, campañas, historiales), cómo calcularlo, con qué
+  cuidados y qué falta. Mapa para la futura sección de Analítica del panel.
 - **Dos ambientes con bases separadas:** QA (`test.vendra.com.mx`) y producción
   (`vendra.com.mx`), cada uno con su proyecto de Supabase y de Vercel. La base
   actual pasa a ser QA. Ver `docs/entornos-qa-prod.md`.
