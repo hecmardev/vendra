@@ -76,10 +76,15 @@ Correr en orden si no están aplicadas (idempotentes):
 - `0016_car_views.sql` — vistas de fichas: un renglón por auto + visitante +
   día de México, con `views` y la visita de origen (`touch_id`). Solo se
   escribe con la función `record_car_view` (service role, desde `/api/views`).
-  **Pendiente de aplicar.** Sin ella las vistas no se registran y el panel no
-  muestra "Autos que vio", pero nada falla.
+  Sin ella las vistas no se registran y el panel no muestra "Autos que vio",
+  pero nada falla.
+- `0017_contact_clicks.sql` — clics de contacto sin datos (WhatsApp, teléfono,
+  correo, mapa): un renglón por clic, con página, auto y visita de origen. Solo
+  se escribe con `record_contact_click` (service role, desde
+  `/api/contact-clicks`). **Pendiente de aplicar.** Sin ella los clics no se
+  registran, pero nada falla.
 
-Hasta la `0015`, aplicadas en QA y en producción (verificado 09/oct/2026 con
+Hasta la `0016`, aplicadas en QA y en producción (verificado 09/oct/2026 con
 `migrate.mjs --status`). Requiere `psql`. Cómo aplicarlas:
 
 - **QA:** `pnpm db:migrate` (usa `.env`).

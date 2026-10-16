@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Manrope } from 'next/font/google'
 import { DealerThemeStyle } from '@/components/providers/DealerThemeStyle'
+import { ContactClickTracker } from '@/components/providers/ContactClickTracker'
 import './globals.css'
 
 // Manrope como familia principal (variable font, auto-hospedada por next/font,
@@ -34,6 +35,8 @@ export default function RootLayout ({
       <body>
         {/* Tema del dealer (overrides de variables CSS) según el dominio. */}
         <DealerThemeStyle />
+        {/* Clics de WhatsApp, teléfono, correo y mapa en el storefront (0017). */}
+        <ContactClickTracker />
         {children}
       </body>
     </html>

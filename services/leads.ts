@@ -110,6 +110,7 @@ export async function listLeads (dealerId: string): Promise<Lead[]> {
       : null,
     visitorId: r.visitor_id ?? null,
     viewedCars: [], // los llena la página con listViewedCarsByVisitor (services/views)
+    contactClicks: [], // ídem, con listContactClicksByVisitor (services/contactClicks)
     createdAt: r.created_at,
     history: (r.lead_status_history ?? [])
       .map((h: any) => ({ from: h.from_status, to: h.to_status, at: h.changed_at }))

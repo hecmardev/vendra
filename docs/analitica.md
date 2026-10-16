@@ -21,14 +21,16 @@ fases que faltan).
 | `cars` | Inventario: condición, precio, estatus | Siempre; condición desde el 09/oct/2026 | 0001, 0009 |
 | `car_status_history` | Cada cambio de estatus o precio de un auto | 09/oct/2026 (ver § 4, línea base) | 0014 |
 | `attribution_touches` | Visitas con origen: campaña, anuncio, buscador, sitio que refirió, página de entrada | 09/oct/2026 | 0015 |
-| `car_views` | Vistas de fichas: un renglón por auto + visitante + día de México, con número de vistas y visita de origen | 13/oct/2026 en QA; producción al aplicar la 0016 | 0016 |
+| `car_views` | Vistas de fichas: un renglón por auto + visitante + día de México, con número de vistas y visita de origen | 13/oct/2026 | 0016 |
+| `contact_clicks` | Clics de contacto sin datos: WhatsApp, teléfono, correo, "cómo llegar"; un renglón por clic, con página, auto y visita de origen | Al aplicar la 0017 | 0017 |
 
 Cómo se unen:
 
 ```
 attribution_touches ──┬── leads.first_touch_id / leads.last_touch_id
-                      └── car_views.touch_id
-leads.visitor_id ═══════ car_views.visitor_id ═══ attribution_touches.visitor_id
+                      ├── car_views.touch_id
+                      └── contact_clicks.touch_id
+leads.visitor_id ═══ car_views.visitor_id ═══ contact_clicks.visitor_id ═══ attribution_touches.visitor_id
 leads.car_id / leads.sold_car_id ── cars.id ── car_views.car_id
 leads.id ── lead_status_history.lead_id
 cars.id  ── car_status_history.car_id
@@ -342,6 +344,104 @@ having count(*) > 1;
 Cualquiera de las anteriores filtrada por `cars.condition`. Responde la
 estrategia: ¿qué condición trae más leads y ventas por campaña?
 
+### F. Contacto directo (sin datos)
+
+WhatsApp, teléfono, correo y "cómo llegar" abren el canal sin pedir datos. No
+son leads, pero son intentos de contacto: sin contarlos, una campaña que genera
+conversaciones por WhatsApp se ve como si no generara nada.
+
+**F1. Contactos directos por campaña** ✅
+El complemento de C1: leads con datos + contactos sin datos = interés real.
+
+```sql
+select t.source, t.medium, coalesce(t.campaign, '(sin campaña)') as campaign,
+       k.channel,
+       count(*) as clics,
+       count(distinct k.visitor_id) as personas
+from contact_clicks k
+join attribution_touches t on t.id = k.touch_id
+where k.dealer_id = :dealer and k.clicked_at >= :desde and k.clicked_at < :hasta + 1
+group by 1, 2, 3, 4
+order by personas desc;
+```
+
+**F2. Contacto directo que no dejó datos** ✅
+Personas que tocaron WhatsApp o teléfono y nunca dejaron un lead: son
+conversaciones que el vendedor tiene en su teléfono y el panel no ve. Si son
+muchas, conviene capturarlas a mano o pasar a la WhatsApp Cloud API (Fase 4 del
+plan).
+
+```sql
+select k.channel, count(distinct k.visitor_id) as personas
+from contact_clicks k
+where k.dealer_id = :dealer and k.clicked_at >= :desde and k.clicked_at < :hasta + 1
+  and k.channel in ('whatsapp', 'telefono')
+  and not exists (select 1 from leads l where l.visitor_id = k.visitor_id and l.dealer_id = k.dealer_id)
+group by k.channel;
+```
+
+**F3. Dónde se toca cada botón** ✅
+Qué botones funcionan: pie de página contra página, y en qué páginas.
+
+```sql
+select k.channel, k.placement, k.path, count(*) as clics
+from contact_clicks k
+where k.dealer_id = :dealer and k.clicked_at >= :desde and k.clicked_at < :hasta + 1
+group by 1, 2, 3
+order by clics desc;
+```
+
+**F4. Autos que generan contacto directo** ✅
+Clics hechos dentro de la ficha de un auto (`car_id` lo resuelve la función por
+el slug de la página).
+
+```sql
+select c.brand || ' ' || c.model || ' ' || c.year as auto, k.channel, count(*) as clics
+from contact_clicks k
+join cars c on c.id = k.car_id
+where k.dealer_id = :dealer and k.clicked_at >= :desde and k.clicked_at < :hasta + 1
+group by 1, 2
+order by clics desc;
+```
+
+Salvedad: un clic no garantiza la conversación. Alguien puede tocar WhatsApp y
+no enviar el mensaje. Es "intentó contactar", no "contactó".
+
+**F5. Salud: clics de WhatsApp de la ficha contra leads de WhatsApp** ✅
+En la ficha, el botón verde del formulario crea el lead (`source = 'whatsapp'`)
+y registra el clic a la vez: los dos totales deben ir casi parejos. Filtrar
+`placement = 'pagina'`, porque el WhatsApp del pie también sale en las fichas y
+no crea lead.
+
+Diferencias normales y pequeñas: navegadores sin cookies (lead sin clic), dos
+envíos en menos de 10 s (2 leads, 1 clic), robots (lead sin clic), un fallo de
+red en una de las dos peticiones. Una diferencia **grande** es una alarma: muchos
+más clics que leads apunta a que `/api/leads` está fallando.
+
+```sql
+with clics as (
+  select k.visitor_id, k.car_id, k.clicked_at
+  from contact_clicks k
+  where k.dealer_id = :dealer and k.clicked_at >= :desde and k.clicked_at < :hasta + 1
+    and k.channel = 'whatsapp' and k.placement = 'pagina' and k.path like '/autos/%'
+), leads_wa as (
+  select l.visitor_id, l.car_id, l.created_at
+  from leads l
+  where l.dealer_id = :dealer and l.source = 'whatsapp' and l.is_active
+    and l.created_at >= :desde and l.created_at < :hasta + 1
+)
+select
+  (select count(*) from clics)    as clics_whatsapp_ficha,
+  (select count(*) from leads_wa) as leads_whatsapp,
+  (select count(*) from clics c
+     where exists (select 1 from leads_wa l
+                   where l.visitor_id = c.visitor_id and l.car_id = c.car_id
+                     and l.created_at between c.clicked_at - interval '1 minute' and c.clicked_at + interval '1 minute')
+  ) as clics_con_su_lead;
+```
+
+Validada el 15/oct/2026 en QA: 1 clic, 1 lead, 1 emparejado.
+
 ---
 
 ## 4. Cuidados al calcular
@@ -375,7 +475,6 @@ estrategia: ¿qué condición trae más leads y ventas por campaña?
 | Falta | Para qué métrica | Cómo | Fase del plan |
 |---|---|---|---|
 | Gasto por campaña | Costo por lead y por venta (C5) | Meta Marketing API o captura manual mensual | 5 |
-| Clics de WhatsApp sin datos | Conversaciones por campaña | Señal desde `WhatsAppFloat` y Contacto a una tabla de eventos | 0, paso 6 |
 | Vistas de portada y catálogo | Visitantes totales del sitio, no solo de fichas | Mismo mecanismo que `car_views`, en una tabla de visitas por página o día | Nuevo |
 | Leads de formulario de Meta | Comparar los tres caminos de la estrategia | Webhook `leadgen` | 3 |
 | WhatsApp directo (anuncios) | Mismo | Cloud API o captura manual | 4 |
