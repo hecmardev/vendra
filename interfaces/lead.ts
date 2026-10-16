@@ -35,6 +35,13 @@ export interface ViewedCar {
   lastViewedAt: string // ISO
 }
 
+/** Clics de contacto sin datos de un canal (contact_clicks, 0017). */
+export interface ContactCount {
+  channel: 'whatsapp' | 'telefono' | 'correo' | 'mapa'
+  clicks: number
+  lastClickedAt: string // ISO
+}
+
 /** Lead para la UI del panel. */
 export interface Lead {
   id: string
@@ -62,6 +69,8 @@ export interface Lead {
   visitorId: string | null
   /** Fichas que abrió ese visitante, antes y después de escribir. */
   viewedCars: ViewedCar[]
+  /** Veces que ese visitante tocó WhatsApp, teléfono, correo o la dirección. */
+  contactClicks: ContactCount[]
   createdAt: string // ISO
   /** Del más antiguo al más reciente. */
   history: LeadStatusChange[]

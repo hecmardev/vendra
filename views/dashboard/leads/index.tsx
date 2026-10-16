@@ -22,6 +22,13 @@ const STATUS_VARIANT: Record<LeadStatus, 'cta' | 'secondary' | 'default' | 'outl
   perdido: 'outline'
 }
 
+const CHANNEL_LABEL: Record<string, string> = {
+  whatsapp: 'WhatsApp',
+  telefono: 'Teléfono',
+  correo: 'Correo',
+  mapa: 'Cómo llegar'
+}
+
 /** Por cuál formulario del sitio entró (`leads.source`). */
 const FORM_LABEL: Record<string, string> = {
   web_form: 'Formulario de contacto',
@@ -225,6 +232,20 @@ export function LeadsView ({ leads: initialLeads, saleOptions }: { leads: Lead[]
                   ))}
                 </dl>
               </div>
+
+              {selected.contactClicks.length > 0 && (
+                <div>
+                  <p className="mb-1.5 text-sm font-medium">Contacto directo</p>
+                  <p className="text-xs text-muted-foreground">
+                    {selected.contactClicks
+                      .map((c) => `${CHANNEL_LABEL[c.channel] ?? c.channel} ×${c.clicks}`)
+                      .join(' · ')}
+                  </p>
+                  <p className="mt-0.5 text-xs text-muted-foreground/80">
+                    Veces que tocó estos botones en tu sitio. Si tocó WhatsApp, revisa si ya te escribió.
+                  </p>
+                </div>
+              )}
 
               {selected.viewedCars.length > 0 && (
                 <div>

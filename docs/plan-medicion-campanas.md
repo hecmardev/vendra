@@ -169,7 +169,11 @@ lo trajo.
      persona no escriba, y saber qué más vio quien sí escribió.
 5. **Ampliar la lista blanca de `source`:** `web_form`, `apartado`, `whatsapp`,
    `whatsapp_click`, `meta_form`, `whatsapp_ad`, `manual`.
-6. **Clics de WhatsApp sin datos.** `WhatsAppFloat` y el botón de Contacto mandan un
+6. ✅ **Hecho en la 0017** (`contact_clicks`), y ampliado a teléfono, correo y
+   "cómo llegar". En vez de que cada botón avise, `ContactClickTracker` escucha
+   los clics de toda la página y reconoce cualquier enlace de contacto. El plan
+   original era:
+   **Clics de WhatsApp sin datos.** `WhatsAppFloat` y el botón de Contacto mandan un
    `navigator.sendBeacon('/api/events', …)` con `whatsapp_click`. Se guarda en una
    tabla ligera `lead_events` o `contact_clicks` (dealer, visitor_id, campaña,
    ruta). No es un lead, pero sí cuenta cuántas conversaciones generó cada campaña.
