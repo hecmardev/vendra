@@ -510,3 +510,31 @@ Validada el 15/oct/2026 en QA: 1 clic, 1 lead, 1 emparejado.
   tres categorías.
 - Cada número de la pantalla tiene que poder explicarse con una consulta de este
   documento. Si se agrega una métrica, se agrega aquí primero.
+
+---
+
+## 7. Analítica de Vendra (entre dealers) — a futuro
+
+Todo lo anterior es la analítica **de un dealer sobre sus propios datos**. Otra
+cosa distinta es la analítica **de Vendra sobre el mercado**, juntando varios
+dealers: qué se vende en Nuevo León, a qué precio, en cuántos días, qué modelos
+generan más interés en todo México.
+
+Requisitos antes de construirla (ver `docs/legal/README.md`):
+
+- **Cláusula en el contrato de cada dealer** que autorice usar su inventario,
+  ventas, precios, vistas y leads, sin datos personales, para estadísticas
+  agregadas. Desde el primer cliente.
+- **Estado y ciudad del dealer como columnas** (`dealers.state`, `dealers.city`),
+  capturadas en el alta. Hoy el domicilio es texto libre.
+- **Solo datos de autos y conteos.** Nunca nombre, teléfono, correo, mensaje ni
+  `visitor_id` de un lead.
+- **Umbral de anonimato:** publicar una cifra solo si junta al menos 5 dealers y
+  10 unidades; si no, agrupar más o no mostrarla.
+- **Fuera del panel del dealer:** corre con permisos de administrador (service
+  role, en `/admin` o en un proceso aparte). La RLS sigue impidiendo que un
+  dealer vea datos de otro.
+
+Ejemplos de lo que daría: precio promedio de venta por marca, modelo, año y
+condición en cada estado; días promedio en inventario por segmento; modelos con
+más interés (vistas, leads) contra ventas; temporadas.

@@ -81,10 +81,9 @@ Correr en orden si no están aplicadas (idempotentes):
 - `0017_contact_clicks.sql` — clics de contacto sin datos (WhatsApp, teléfono,
   correo, mapa): un renglón por clic, con página, auto y visita de origen. Solo
   se escribe con `record_contact_click` (service role, desde
-  `/api/contact-clicks`). **Pendiente de aplicar.** Sin ella los clics no se
-  registran, pero nada falla.
+  `/api/contact-clicks`). Sin ella los clics no se registran, pero nada falla.
 
-Hasta la `0016`, aplicadas en QA y en producción (verificado 09/oct/2026 con
+Hasta la `0017`, aplicadas en QA y en producción (verificado 09/oct/2026 con
 `migrate.mjs --status`). Requiere `psql`. Cómo aplicarlas:
 
 - **QA:** `pnpm db:migrate` (usa `.env`).
@@ -101,6 +100,10 @@ el despliegue (ver `docs/liberacion-prod.md`).
   QA y decisiones de producto sin resolver.
 - **Mapa de vistas del dealer:** ver `docs/vistas-dealer.md` (storefront, dashboard,
   módulos y lo que hay detrás).
+- **Avisos de privacidad:** borradores en `docs/legal/` (uno por dealer, uno de
+  Vendra), pendientes de revisión legal. El `README.md` de esa carpeta lista
+  los cambios técnicos que hacen falta antes de publicarlos (rechazar la
+  medición, anonimizar por solicitud ARCO, plazos de conservación).
 - **Analítica:** ver `docs/analitica.md` — qué se puede medir con los datos que
   ya se guardan (vistas, leads, campañas, historiales), cómo calcularlo, con qué
   cuidados y qué falta. Mapa para la futura sección de Analítica del panel.
