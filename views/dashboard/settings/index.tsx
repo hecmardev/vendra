@@ -77,7 +77,6 @@ export function SettingsView ({ initial }: { initial: SettingsInitial }) {
   const [email, setEmail] = useState(initial.email)
   const [address, setAddress] = useState(initial.address)
   const [hours, setHours] = useState(initial.hours)
-  const [metaPixelId, setMetaPixelId] = useState(initial.metaPixelId)
   const [ga4Id, setGa4Id] = useState(initial.ga4Id)
   const [primary, setPrimary] = useState(initial.primary)
   const [cta, setCta] = useState(initial.cta)
@@ -100,7 +99,7 @@ export function SettingsView ({ initial }: { initial: SettingsInitial }) {
     setSaved(false)
     const input: SettingsInput = {
       name, whatsapp, phone, email, address, hours,
-      metaPixelId, ga4Id, primary, cta, radius, flags
+      ga4Id, primary, cta, radius, flags
     }
     startTransition(async () => {
       const res = await saveSettingsAction(input)
@@ -131,7 +130,12 @@ export function SettingsView ({ initial }: { initial: SettingsInitial }) {
       {/* Marketing */}
       <Section title="Integraciones de marketing" description="Tus propios IDs para tracking. Vendra dispara el pixel/GA4 correcto según tu dominio.">
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Meta Pixel ID"><Input value={metaPixelId} onChange={(e) => setMetaPixelId(e.target.value)} placeholder="1234567890" /></Field>
+          {/* Solo lectura: Vendra maneja tus campañas y lo configura desde su
+              panel; cambiarlo a media campaña dejaría a Meta sin eventos. */}
+          <Field label="Meta Pixel ID">
+            <Input value={initial.metaPixelId || 'Sin configurar'} readOnly disabled />
+            <p className="mt-1 text-xs text-muted-foreground">Lo configura Vendra. Si necesitas cambiarlo, escríbenos.</p>
+          </Field>
           <Field label="GA4 Measurement ID"><Input value={ga4Id} onChange={(e) => setGa4Id(e.target.value)} placeholder="G-XXXXXXX" /></Field>
         </div>
       </Section>

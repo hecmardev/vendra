@@ -39,6 +39,7 @@ export function DealerFormView ({ dealer }: { dealer?: DealerStats }) {
   const [password, setPassword] = useState('')
   const [whatsapp, setWhatsapp] = useState(dealer?.whatsappNumber ?? '')
   const [pixel, setPixel] = useState(dealer?.metaPixelId ?? '')
+  const [fbVerification, setFbVerification] = useState(dealer?.metaDomainVerification ?? '')
   const [ga4, setGa4] = useState(dealer?.ga4MeasurementId ?? '')
 
   const [error, setError] = useState('')
@@ -54,7 +55,7 @@ export function DealerFormView ({ dealer }: { dealer?: DealerStats }) {
     setError('')
     startTransition(async () => {
       const res = isEdit
-        ? await updateDealerAction(dealer!.id, { name, domain, whatsappNumber: whatsapp, metaPixelId: pixel, ga4MeasurementId: ga4 })
+        ? await updateDealerAction(dealer!.id, { name, domain, whatsappNumber: whatsapp, metaPixelId: pixel, metaDomainVerification: fbVerification, ga4MeasurementId: ga4 })
         : await createDealerAction({ name, domain, email, password })
       if (res?.error) setError(res.error)
     })
@@ -110,14 +111,37 @@ export function DealerFormView ({ dealer }: { dealer?: DealerStats }) {
           <Field label="WhatsApp">
             <Input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="5215555555555" />
           </Field>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Meta Pixel ID">
-              <Input value={pixel} onChange={(e) => setPixel(e.target.value)} placeholder="1234567890" />
-            </Field>
-            <Field label="GA4 Measurement ID">
-              <Input value={ga4} onChange={(e) => setGa4(e.target.value)} placeholder="G-XXXXXXX" />
-            </Field>
+          <Field label="GA4 Measurement ID">
+            <Input value={ga4} onChange={(e) => setGa4(e.target.value)} placeholder="G-XXXXXXX" />
+          </Field>
+        </section>
+      )}
+
+      {isEdit && (
+        <section className="space-y-4 rounded-xl border bg-card p-6">
+          <div>
+            <h2 className="font-bold">Meta (Facebook e Instagram)</h2>
+            <p className="text-sm text-muted-foreground">
+              Lo administra Vendra: el dealer lo ve en sus Ajustes pero no lo puede cambiar. Ambos salen
+              del Business Manager del dealer, con el acceso de socio.
+            </p>
           </div>
+          <Field
+            label="Pixel (ID del conjunto de datos)"
+            hint="Administrador de eventos → el conjunto de datos del dealer → su ID. Solo números. Vacío = sin Pixel."
+          >
+            <Input value={pixel} onChange={(e) => setPixel(e.target.value)} inputMode="numeric" placeholder="1234567890123456" />
+          </Field>
+          <Field
+            label="Verificación del dominio"
+            hint={`Configuración del negocio → Seguridad de la marca → Dominios → ${domain || 'su dominio'} → "Etiqueta meta". Pega la etiqueta completa o solo su content.`}
+          >
+            <Input
+              value={fbVerification}
+              onChange={(e) => setFbVerification(e.target.value)}
+              placeholder='<meta name="facebook-domain-verification" content="…" />'
+            />
+          </Field>
         </section>
       )}
 

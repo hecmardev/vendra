@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Manrope } from 'next/font/google'
 import { DealerThemeStyle } from '@/components/providers/DealerThemeStyle'
 import { ContactClickTracker } from '@/components/providers/ContactClickTracker'
+import { DealerMarketing, getDealerDomainVerification } from '@/components/providers/DealerMarketing'
 import './globals.css'
 
 // Manrope como familia principal (variable font, auto-hospedada por next/font,
@@ -12,18 +13,23 @@ const manrope = Manrope({
   display: 'swap'
 })
 
-export const metadata: Metadata = {
-  title: 'Vendra',
-  description: 'Plataforma multi-tenant de venta de autos'
+export async function generateMetadata (): Promise<Metadata> {
+  // Etiqueta <meta name="facebook-domain-verification"> con la que Meta verifica
+  // que el dominio es del dealer (0018). Solo en sitios de dealer que la tengan.
+  const fbVerification = await getDealerDomainVerification()
+  return {
+    title: 'Vendra',
+    description: 'Plataforma multi-tenant de venta de autos',
+    ...(fbVerification ? { other: { 'facebook-domain-verification': fbVerification } } : {})
+  }
 }
 
 /**
- * Layout raíz. Aquí se inyecta:
- *  - El contenedor GTM compartido (un solo container; dispara el Pixel/GA4
- *    correcto según el dealer_id resuelto).
- *  - El branding por dealer: un <style> con overrides de variables CSS
- *    (--primary, --background, --radius, ...) a partir de dealers.branding.
- * TODO(impl): leer el tenant (getTenant) y su config para GTM + branding.
+ * Layout raíz. Aquí se inyecta, según el dealer resuelto por el dominio:
+ *  - El branding: un <style> con overrides de variables CSS (DealerThemeStyle).
+ *  - El aviso de cookies y el Pixel de Meta del dealer (DealerMarketing).
+ *  - El registro de clics de contacto (ContactClickTracker).
+ * Cada pieza decide sola si actúa: en la plataforma y en los paneles no hacen nada.
  */
 export default function RootLayout ({
   children
@@ -37,6 +43,8 @@ export default function RootLayout ({
         <DealerThemeStyle />
         {/* Clics de WhatsApp, teléfono, correo y mapa en el storefront (0017). */}
         <ContactClickTracker />
+        {/* Aviso de cookies y Pixel de Meta del dealer (0018). */}
+        <DealerMarketing />
         {children}
       </body>
     </html>

@@ -82,6 +82,12 @@ Correr en orden si no están aplicadas (idempotentes):
   correo, mapa): un renglón por clic, con página, auto y visita de origen. Solo
   se escribe con `record_contact_click` (service role, desde
   `/api/contact-clicks`). Sin ella los clics no se registran, pero nada falla.
+- `0018_meta_pixel.sql` — Pixel de Meta por dealer: valida `meta_pixel_id`,
+  agrega `meta_domain_verification`, y un trigger impide que el dealer los
+  cambie (los administra Vendra desde el admin). En `leads`: `meta_event_id`
+  (deduplicación Pixel ↔ Conversions API) y `tracking_consent`. **Pendiente de
+  aplicar**, antes del despliegue: sin ella guardar un dealer en el admin falla,
+  y los leads se guardan sin origen.
 
 Hasta la `0017`, aplicadas en QA y en producción (verificado 09/oct/2026 con
 `migrate.mjs --status`). Requiere `psql`. Cómo aplicarlas:

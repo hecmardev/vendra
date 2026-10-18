@@ -58,7 +58,8 @@ export async function getCurrentDealer () {
 export interface DealerUpdate {
   name?: string
   whatsapp_number?: string | null
-  meta_pixel_id?: string | null
+  // Sin meta_pixel_id ni meta_domain_verification: los administra Vendra desde
+  // el admin (services/admin.ts); la 0018 rechaza que el dealer los cambie.
   ga4_measurement_id?: string | null
   branding?: DealerBranding
   content?: Record<string, unknown>

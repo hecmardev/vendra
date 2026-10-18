@@ -44,7 +44,8 @@ export async function updateDealerAction (dealerId: string, patch: DealerAdminPa
     return { error: e instanceof Error ? e.message : 'No se pudo guardar' }
   }
 
-  revalidatePath('/admin')
+  // El Pixel y la verificación del dominio salen en el sitio del dealer.
+  revalidateDealerPaths()
   redirect('/admin')
 }
 

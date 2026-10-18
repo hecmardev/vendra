@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { WhatsAppAction, WhatsAppButton } from '@/components/common/whatsapp-cta'
+import { newEventId, trackMeta } from '@/lib/metaPixel'
 import { Modal } from './Modal'
 
 /**
@@ -54,6 +55,11 @@ export function WhatsAppDialog ({
       setError('Necesitamos tu nombre y un teléfono de 10 dígitos.')
       return
     }
+    // Mismo id para el Pixel y para el lead guardado: Conversions API lo reusa
+    // y Meta lo cuenta una sola vez (lib/metaPixel.ts). Se manda ya, sin esperar
+    // el guardado, por la misma razón que el fetch: el chat se abre enseguida.
+    const eventId = newEventId()
+    trackMeta('Lead', { content_ids: [carId], content_name: carLabel, lead_source: 'whatsapp' }, eventId)
     fetch('/api/leads', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -63,7 +69,8 @@ export function WhatsAppDialog ({
         phone: tel.trim(),
         message: mensaje,
         carId,
-        source: 'whatsapp'
+        source: 'whatsapp',
+        eventId
       })
     }).catch(() => {})
     setOpen(false)

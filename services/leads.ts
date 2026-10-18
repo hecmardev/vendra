@@ -16,6 +16,10 @@ export interface CreateLeadInput {
   visitorId?: string | null
   /** Cookie _fbp del Pixel de Meta, si existe. */
   fbp?: string | null
+  /** Id del evento Lead que el navegador mandó al Pixel (0018). */
+  metaEventId?: string | null
+  /** Lo que eligió en el aviso de cookies al dejar sus datos (0018). */
+  trackingConsent?: 'accepted' | 'rejected' | null
 }
 
 /**
@@ -41,7 +45,9 @@ export async function createLead (input: CreateLeadInput) {
     visitor_id: input.visitorId ?? null,
     first_touch_id: input.firstTouchId ?? null,
     last_touch_id: input.lastTouchId ?? null,
-    fbp: input.fbp ?? null
+    fbp: input.fbp ?? null,
+    meta_event_id: input.metaEventId ?? null,
+    tracking_consent: input.trackingConsent ?? null
   }
 
   const insert = (row: object) => supabase.from('leads').insert(row).select('id').single()

@@ -6,6 +6,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { mergeContent } from '@/lib/content'
 import { ATTR_COOKIE, VISITOR_COOKIE, isUuid, parseAttribution } from '@/lib/attribution'
 import { saveTouches } from '@/services/attribution'
+import { CONSENT_COOKIE, canMeasure, parseConsent } from '@/lib/consent'
 
 /**
  * POST /api/leads — captura un lead desde el sitio público.
@@ -47,10 +48,20 @@ export async function POST (req: NextRequest) {
   // el navegador las manda con este fetch. Se leen aquí y no del body para que
   // el formulario no tenga que saber nada de campañas. Las visitas se guardan
   // en attribution_touches y el lead solo las referencia.
+  //
+  // Si el visitante rechazó la medición (lib/consent.ts), el lead se recibe
+  // igual pero sin nada de eso: ni origen, ni visitante, ni cookie del Pixel.
+  const consent = parseConsent(req.cookies.get(CONSENT_COOKIE)?.value)
+  const measure = canMeasure(consent)
   const rawVisitor = req.cookies.get(VISITOR_COOKIE)?.value
-  const visitorId = isUuid(rawVisitor) ? rawVisitor : null
-  const touches = await saveTouches(dealer.id, visitorId, parseAttribution(req.cookies.get(ATTR_COOKIE)?.value))
-  const fbp = req.cookies.get('_fbp')?.value?.slice(0, 255) ?? null
+  const visitorId = measure && isUuid(rawVisitor) ? rawVisitor : null
+  const touches = measure
+    ? await saveTouches(dealer.id, visitorId, parseAttribution(req.cookies.get(ATTR_COOKIE)?.value))
+    : { firstTouchId: null, lastTouchId: null }
+  const fbp = measure ? req.cookies.get('_fbp')?.value?.slice(0, 255) ?? null : null
+  // Id del evento Lead que el navegador ya mandó al Pixel (lib/metaPixel.ts).
+  // La Fase B lo reusa en Conversions API para que Meta no lo cuente doble.
+  const metaEventId = isUuid(body.eventId) ? body.eventId : null
 
   // TODO(impl): validar/sanitizar phone/email; rate limiting; Turnstile.
   const lead = await createLead({
@@ -63,7 +74,9 @@ export async function POST (req: NextRequest) {
     source,
     ...touches,
     visitorId,
-    fbp
+    fbp,
+    metaEventId,
+    trackingConsent: consent
   })
 
   // Notifica al dealer. A prueba de fallos: nunca rompe la captura del lead.
