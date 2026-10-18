@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Loader2, CheckCircle2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { newEventId, trackMeta } from '@/lib/metaPixel'
 
 type Status = 'idle' | 'loading' | 'success' | 'error'
 
@@ -21,6 +22,9 @@ export function LeadForm ({ carId, carLabel, source }: { carId?: string; carLabe
     setStatus('loading')
     setError('')
     const form = new FormData(e.currentTarget)
+    // Mismo id para el Pixel y para el lead guardado: Conversions API lo reusa
+    // y Meta lo cuenta una sola vez (lib/metaPixel.ts).
+    const eventId = newEventId()
     try {
       const res = await fetch('/api/leads', {
         method: 'POST',
@@ -31,10 +35,13 @@ export function LeadForm ({ carId, carLabel, source }: { carId?: string; carLabe
           email: form.get('email'),
           message: form.get('message'),
           carId,
-          source
+          source,
+          eventId
         })
       })
       if (!res.ok) throw new Error('No se pudo enviar. Intenta de nuevo.')
+      // Solo si se guardó: un Lead en Meta sin lead en el panel no cuadraría.
+      trackMeta('Lead', { ...(carId ? { content_ids: [carId], content_name: carLabel } : {}), lead_source: source ?? 'web_form' }, eventId)
       setStatus('success')
     } catch (err) {
       setStatus('error')

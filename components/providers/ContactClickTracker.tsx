@@ -1,8 +1,18 @@
 'use client'
 
 import { useEffect } from 'react'
+import { isPanelPath, isPlatformHost } from '@/lib/storefront'
+import { trackMeta } from '@/lib/metaPixel'
 
 type Channel = 'whatsapp' | 'telefono' | 'correo' | 'mapa'
+
+/** Evento estándar de Meta por canal: "cómo llegar" es FindLocation, el resto Contact. */
+const META_EVENT: Record<Channel, string> = {
+  whatsapp: 'Contact',
+  telefono: 'Contact',
+  correo: 'Contact',
+  mapa: 'FindLocation'
+}
 
 /** Qué canal abre un enlace, por su href. null = no es de contacto. */
 function channelOf (href: string): Channel | null {
@@ -11,13 +21,6 @@ function channelOf (href: string): Channel | null {
   if (href.startsWith('mailto:')) return 'correo'
   if (/^https?:\/\/(www\.google\.[^/]+\/maps|maps\.google\.|maps\.apple\.com|goo\.gl\/maps|maps\.app\.goo\.gl)/i.test(href)) return 'mapa'
   return null
-}
-
-/** Mismo criterio que isPlatformHost del middleware: ahí no hay dealer. */
-function isPlatformHost (host: string): boolean {
-  if (host === 'localhost' || host === '127.0.0.1' || host.endsWith('.vercel.app')) return true
-  const base = process.env.NEXT_PUBLIC_BASE_DOMAIN ?? 'vendra.com.mx'
-  return host === base || host === `www.${base}`
 }
 
 /**
@@ -30,6 +33,9 @@ function isPlatformHost (host: string): boolean {
  *
  * `sendBeacon` sobrevive a que la página se vaya (wa.me abre la app, tel: el
  * marcador). El servidor resuelve el dealer, el visitante y la campaña.
+ *
+ * El mismo clic va al Pixel de Meta del dealer (Contact / FindLocation), si
+ * está cargado; trackMeta no hace nada si no hay Pixel o no hay aceptación.
  */
 export function ContactClickTracker () {
   useEffect(() => {
@@ -38,7 +44,7 @@ export function ContactClickTracker () {
     const onClick = (e: MouseEvent) => {
       // El panel del dealer y el del admin no son visitas de clientes: el
       // WhatsApp del detalle de un lead es el vendedor escribiéndole al cliente.
-      if (/^\/(dashboard|admin)(\/|$)/.test(location.pathname)) return
+      if (isPanelPath(location.pathname)) return
 
       const a = (e.target as Element | null)?.closest?.('a[href]') as HTMLAnchorElement | null
       if (!a) return
@@ -58,6 +64,7 @@ export function ContactClickTracker () {
       // los manejadores del propio botón.
       setTimeout(() => {
         if (e.defaultPrevented) return
+        trackMeta(META_EVENT[channel], { channel })
         try {
           const ok = navigator.sendBeacon?.('/api/contact-clicks', new Blob([body], { type: 'application/json' }))
           if (!ok) {

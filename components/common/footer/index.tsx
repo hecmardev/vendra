@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { Car, Phone, Mail, MapPin, Clock, LogIn } from 'lucide-react'
 import { WhatsAppIcon } from '../whatsapp-cta/icon'
 import { AddressLink, PhoneLink, MailLink } from '../contact-links'
+import { CookiePreferencesLink } from '@/components/providers/CookieConsent'
 import { getContent } from '@/lib/content'
 import { getBusiness } from '@/lib/business'
 import { getTenant } from '@/lib/tenant'
@@ -99,6 +100,7 @@ export default async function Footer ({ dealerName }: { dealerName?: string }) {
             <Link href="/autos" className="hover:text-primary-foreground">Autos</Link>
             <Link href="/acerca-de" className="hover:text-primary-foreground">Nosotros</Link>
             <Link href="/contacto" className="hover:text-primary-foreground">Contacto</Link>
+            <CookiePreferencesLink className="hover:text-primary-foreground" />
             <Link href="/dashboard" className="inline-flex items-center gap-1 hover:text-primary-foreground">
               <LogIn className="h-3.5 w-3.5" /> Panel
             </Link>

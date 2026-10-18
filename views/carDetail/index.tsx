@@ -87,7 +87,7 @@ export async function CarDetail ({ slug }: { slug: string }) {
       <Navbar dealerName={businessName} />
       <main className="flex-1">
         <div className="container py-6">
-          <CarViewBeacon carId={car.id} />
+          <CarViewBeacon car={{ id: car.id, brand: car.brand, model: car.model, year: car.year, condition: car.condition, price: car.price }} />
           <Breadcrumb car={car} baseUrl={baseUrl} />
           <script
             type="application/ld+json"

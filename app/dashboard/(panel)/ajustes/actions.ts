@@ -11,7 +11,6 @@ export interface SettingsInput {
   email: string
   address: string
   hours: string
-  metaPixelId: string
   ga4Id: string
   /** Colores en hex (#RRGGBB) y radius en rem. */
   primary: string
@@ -34,7 +33,7 @@ export async function saveSettingsAction (input: SettingsInput): Promise<{ error
     await updateDealer(dealer.id, {
       name: input.name.trim(),
       whatsapp_number: input.whatsapp.trim() || null,
-      meta_pixel_id: input.metaPixelId.trim() || null,
+      // meta_pixel_id NO: lo administra Vendra desde el admin (trigger de la 0018).
       ga4_measurement_id: input.ga4Id.trim() || null,
       branding: {
         ...(dealer.branding as Record<string, unknown>),

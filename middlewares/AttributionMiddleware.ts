@@ -3,6 +3,7 @@ import {
   ATTR_COOKIE, ATTR_MAX_AGE, VISITOR_COOKIE, VISITOR_MAX_AGE,
   isUuid, mergeAttribution, parseAttribution, touchFromRequest
 } from '@/lib/attribution'
+import { CONSENT_COOKIE, canMeasure, parseConsent } from '@/lib/consent'
 
 /**
  * Anota de dónde llegó el visitante del storefront en cookies propias del
@@ -11,11 +12,20 @@ import {
  *
  * Las cookies son httpOnly: solo las lee el servidor (/api/leads), nunca el
  * JavaScript de la página ni scripts de terceros.
+ *
+ * Si el visitante rechazó la medición en el aviso de cookies (lib/consent.ts),
+ * no pone ninguna y borra las que hubieran quedado.
  */
 export default class AttributionMiddleware {
   apply (req: NextRequest, res: NextResponse, host: string): void {
     // Los prefetch de <Link> no son visitas: el usuario no ha llegado a esa página.
     if (req.headers.get('next-router-prefetch')) return
+
+    if (!canMeasure(parseConsent(req.cookies.get(CONSENT_COOKIE)?.value))) {
+      if (req.cookies.has(VISITOR_COOKIE)) res.cookies.delete(VISITOR_COOKIE)
+      if (req.cookies.has(ATTR_COOKIE)) res.cookies.delete(ATTR_COOKIE)
+      return
+    }
 
     const opts = {
       httpOnly: true,

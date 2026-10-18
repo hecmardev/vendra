@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getDealerByDomain } from '@/services/dealers'
 import { recordCarView } from '@/services/views'
 import { ATTR_COOKIE, VISITOR_COOKIE, isUuid, parseAttribution } from '@/lib/attribution'
+import { CONSENT_COOKIE, canMeasure, parseConsent } from '@/lib/consent'
 
 // Robots que ejecutan JavaScript (previsualizadores, crawlers modernos). La
 // señal sale del navegador, así que la mayoría de los bots ni llega aquí; esto
@@ -18,6 +19,8 @@ const BOT = /bot|crawl|spider|slurp|preview|facebookexternalhit|whatsapp|headles
 export async function POST (req: NextRequest) {
   const done = new NextResponse(null, { status: 204 })
   if (BOT.test(req.headers.get('user-agent') ?? '')) return done
+  // Rechazó la medición en el aviso de cookies (lib/consent.ts).
+  if (!canMeasure(parseConsent(req.cookies.get(CONSENT_COOKIE)?.value))) return done
 
   // El dealer sale del host, nunca del body (igual que /api/leads).
   const host = (req.headers.get('host') ?? '').split(':')[0].toLowerCase()

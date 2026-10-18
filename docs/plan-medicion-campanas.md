@@ -200,6 +200,15 @@ En Meta, usar los parámetros de URL del anuncio con macros (`{{campaign.name}}`
 
 ### Fase 1 — Pixel y GA4 en el sitio
 
+> **Pixel de Meta hecho** en `feat/pixel-meta` (0018): un Pixel por dealer,
+> configurado por Vendra en el admin (el dealer lo ve sin poder cambiarlo,
+> porque Vendra le maneja las campañas con acceso de socio); verificación del
+> dominio publicada sola; banner de consentimiento (el Pixel solo carga con
+> "Aceptar"); eventos PageView, ViewContent (marca, modelo, año, condición,
+> precio), Lead (con `event_id` = `leads.meta_event_id`, para deduplicar con la
+> Fase 2) y Contact / FindLocation. Pendientes de esta fase: GA4 y el feed de
+> catálogo.
+
 1. Leer `meta_pixel_id` y `ga4_measurement_id` del tenant en `app/layout.tsx`
    (el TODO que ya existe) e inyectar los scripts solo en storefronts, nunca en
    `/dashboard` ni en plataforma.

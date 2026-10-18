@@ -77,9 +77,12 @@ Los campos entre `{{ }}`:
 El aviso describe cómo se tratan los datos. Hoy hay cosas que el aviso promete
 y el código todavía no hace. **Hay que construirlas antes de publicarlo:**
 
-1. **Rechazar la medición.** El aviso trata la medición de campañas como
-   finalidad *secundaria*, que el visitante puede rechazar. Hoy las cookies
-   `vd_vid` y `vd_attr` se ponen siempre. Falta:
+1. ✅ **Rechazar la medición** — hecho en `feat/pixel-meta` (`lib/consent.ts`,
+   `CookieConsent`, `/api/consent`): banner con "Aceptar" / "Rechazar
+   medición", "Preferencias de cookies" en el pie, el middleware y las APIs
+   respetan el rechazo y borran las cookies, y el Pixel solo carga con
+   aceptación. Pendiente: enlazar el banner al aviso cuando exista la página.
+   Lo que se planeó:
    - Un banner o panel de preferencias con "Aceptar" y "Rechazar medición".
    - Una cookie de decisión (p. ej. `vd_consent`) que el middleware respete: si
      es "rechazada", no pone ni lee `vd_vid`/`vd_attr`, y `/api/views` y

@@ -67,6 +67,7 @@ export interface DealerStats {
   domain: string
   whatsappNumber: string | null
   metaPixelId: string | null
+  metaDomainVerification: string | null
   ga4MeasurementId: string | null
   createdAt: string
   isActive: boolean
@@ -101,6 +102,7 @@ export async function listDealersWithStats (): Promise<DealerStats[]> {
     domain: d.domain,
     whatsappNumber: d.whatsapp_number ?? null,
     metaPixelId: d.meta_pixel_id ?? null,
+    metaDomainVerification: d.meta_domain_verification ?? null,
     ga4MeasurementId: d.ga4_measurement_id ?? null,
     createdAt: d.created_at,
     isActive: d.is_active,
@@ -221,7 +223,30 @@ export interface DealerAdminPatch {
   domain: string
   whatsappNumber: string
   metaPixelId: string
+  /** Código de la etiqueta facebook-domain-verification, o la etiqueta completa. */
+  metaDomainVerification: string
   ga4MeasurementId: string
+}
+
+/** Pixel de Meta: solo dígitos (mismo CHECK que la 0018). Vacío = sin Pixel. */
+function normalizePixelId (raw: string): string | null {
+  const v = raw.trim()
+  if (!v) return null
+  if (!/^[0-9]{6,20}$/.test(v)) throw new Error('El Pixel de Meta son solo números (Administrador de eventos → el ID del conjunto de datos).')
+  return v
+}
+
+/**
+ * Verificación del dominio en Meta. Acepta el código solo o la etiqueta
+ * completa que da Meta para pegar (<meta name="facebook-domain-verification"
+ * content="…" />): se queda con el código.
+ */
+function normalizeDomainVerification (raw: string): string | null {
+  const v = raw.trim()
+  if (!v) return null
+  const code = v.match(/content=["']([^"']+)["']/i)?.[1] ?? v
+  if (!/^[A-Za-z0-9_-]{10,100}$/.test(code)) throw new Error('El código de verificación del dominio no es válido. Pega la etiqueta que da Meta o solo su "content".')
+  return code
 }
 
 /** Edita los datos de cualquier dealer desde el panel de plataforma. */
@@ -249,7 +274,10 @@ export async function updateDealerAsAdmin (dealerId: string, patch: DealerAdminP
       name: patch.name.trim(),
       domain,
       whatsapp_number: patch.whatsappNumber.trim() || null,
-      meta_pixel_id: patch.metaPixelId.trim() || null,
+      // La configuración de Meta solo la cambia Vendra (trigger de la 0018):
+      // este update va con el service role.
+      meta_pixel_id: normalizePixelId(patch.metaPixelId),
+      meta_domain_verification: normalizeDomainVerification(patch.metaDomainVerification),
       ga4_measurement_id: patch.ga4MeasurementId.trim() || null
     })
     .eq('id', dealerId)

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getDealerByDomain } from '@/services/dealers'
 import { recordContactClick, CONTACT_CHANNELS, type ContactChannel } from '@/services/contactClicks'
 import { ATTR_COOKIE, VISITOR_COOKIE, isUuid, parseAttribution } from '@/lib/attribution'
+import { CONSENT_COOKIE, canMeasure, parseConsent } from '@/lib/consent'
 
 const BOT = /bot|crawl|spider|slurp|preview|facebookexternalhit|whatsapp|headless|lighthouse/i
 
@@ -14,6 +15,8 @@ const BOT = /bot|crawl|spider|slurp|preview|facebookexternalhit|whatsapp|headles
 export async function POST (req: NextRequest) {
   const done = new NextResponse(null, { status: 204 })
   if (BOT.test(req.headers.get('user-agent') ?? '')) return done
+  // Rechazó la medición en el aviso de cookies (lib/consent.ts).
+  if (!canMeasure(parseConsent(req.cookies.get(CONSENT_COOKIE)?.value))) return done
 
   // El dealer sale del host, nunca del body. En el host de plataforma no hay
   // dealer y el clic se ignora.
