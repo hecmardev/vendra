@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { parseMetaConfig, type MetaConfigInput } from '@/lib/metaConfig'
+import { parseGa4Id } from '@/lib/ga4'
 import { saveMetaConfig } from '@/services/metaConfig'
 
 /**
@@ -244,6 +245,7 @@ export async function updateDealerAsAdmin (dealerId: string, patch: DealerAdminP
   // guardado a medias.
   const domain = normalizeDomain(patch.domain)
   const metaConfig = parseMetaConfig(patch)
+  const ga4Id = parseGa4Id(patch.ga4MeasurementId)
 
   // Mismo criterio que el alta, excluyéndose a sí mismo. Sin esto, mover un
   // dealer a un dominio ocupado revienta con el error crudo del índice único.
@@ -263,7 +265,7 @@ export async function updateDealerAsAdmin (dealerId: string, patch: DealerAdminP
       name: patch.name.trim(),
       domain,
       whatsapp_number: patch.whatsappNumber.trim() || null,
-      ga4_measurement_id: patch.ga4MeasurementId.trim() || null
+      ga4_measurement_id: ga4Id
     })
     .eq('id', dealerId)
   if (error) throw error

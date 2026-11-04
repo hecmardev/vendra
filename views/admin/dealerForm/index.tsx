@@ -126,7 +126,7 @@ export function DealerFormView ({ dealer }: { dealer?: DealerStats }) {
             <Input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="5215555555555" />
           </Field>
           <Field label="GA4 Measurement ID">
-            <Input value={ga4} onChange={(e) => setGa4(e.target.value)} placeholder="G-XXXXXXX" />
+            <Input value={ga4} onChange={(e) => setGa4(e.target.value)} autoComplete="off" placeholder="G-XXXXXXX" />
           </Field>
         </section>
       )}
