@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { SettingsView } from 'views/dashboard/settings'
 import { getCurrentDealer, getDealerFeatures } from '@/services/dealers'
+import { getMetaConfigStatus } from '@/services/metaConfig'
 import { mergeContent } from '@/lib/content'
 import type { DealerBranding } from '@/lib/branding'
 import { hslToHex } from '@/helpers/color'
@@ -19,6 +20,7 @@ export default async function Page () {
   } catch {
     // Sin política de escritura/lectura aún: se muestran apagados.
   }
+  const metaStatus = await getMetaConfigStatus(dealer.id)
 
   const initial = {
     name: dealer.name ?? '',
@@ -27,7 +29,11 @@ export default async function Page () {
     email: business.email,
     address: business.address,
     hours: business.hours,
+    domain: dealer.domain ?? '',
     metaPixelId: dealer.meta_pixel_id ?? '',
+    metaDomainVerification: dealer.meta_domain_verification ?? '',
+    metaTokenConfigured: metaStatus.tokenConfigured,
+    metaTestEventCode: metaStatus.testEventCode ?? '',
     ga4Id: dealer.ga4_measurement_id ?? '',
     primary: hslToHex(branding.primary, '#1e293b'),
     cta: hslToHex(branding.cta, '#dc2626'),

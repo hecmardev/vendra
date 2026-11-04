@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { hexToHsl } from '@/helpers/color'
 import { saveSettingsAction, type SettingsInput } from '@/app/dashboard/(panel)/ajustes/actions'
+import { MetaConfigFields } from '@/components/common/meta-config-fields'
+import type { MetaConfigInput } from '@/lib/metaConfig'
 
 /** Interruptor on/off (feature flags). */
 function Switch ({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
@@ -58,7 +60,11 @@ export interface SettingsInitial {
   email: string
   address: string
   hours: string
+  domain: string
   metaPixelId: string
+  metaDomainVerification: string
+  metaTokenConfigured: boolean
+  metaTestEventCode: string
   ga4Id: string
   primary: string
   cta: string
@@ -78,6 +84,14 @@ export function SettingsView ({ initial }: { initial: SettingsInitial }) {
   const [address, setAddress] = useState(initial.address)
   const [hours, setHours] = useState(initial.hours)
   const [ga4Id, setGa4Id] = useState(initial.ga4Id)
+  const [meta, setMeta] = useState<MetaConfigInput>({
+    metaPixelId: initial.metaPixelId,
+    metaDomainVerification: initial.metaDomainVerification,
+    // El token nunca viene del servidor: este campo solo sirve para escribir uno nuevo.
+    metaCapiToken: '',
+    clearMetaCapiToken: false,
+    metaTestEventCode: initial.metaTestEventCode
+  })
   const [primary, setPrimary] = useState(initial.primary)
   const [cta, setCta] = useState(initial.cta)
   const [radius, setRadius] = useState(initial.radius)
@@ -99,12 +113,17 @@ export function SettingsView ({ initial }: { initial: SettingsInitial }) {
     setSaved(false)
     const input: SettingsInput = {
       name, whatsapp, phone, email, address, hours,
-      ga4Id, primary, cta, radius, flags
+      ga4Id, meta, primary, cta, radius, flags
     }
     startTransition(async () => {
       const res = await saveSettingsAction(input)
-      if (res?.error) setError(res.error)
-      else setSaved(true)
+      if (res?.error) {
+        setError(res.error)
+        return
+      }
+      setSaved(true)
+      // Ya guardado: el campo se vacía y `initial` trae si quedó configurado.
+      setMeta((m) => ({ ...m, metaCapiToken: '', clearMetaCapiToken: false }))
     })
   }
 
@@ -130,14 +149,21 @@ export function SettingsView ({ initial }: { initial: SettingsInitial }) {
       {/* Marketing */}
       <Section title="Integraciones de marketing" description="Tus propios IDs para tracking. Vendra dispara el pixel/GA4 correcto según tu dominio.">
         <div className="grid gap-4 sm:grid-cols-2">
-          {/* Solo lectura: Vendra maneja tus campañas y lo configura desde su
-              panel; cambiarlo a media campaña dejaría a Meta sin eventos. */}
-          <Field label="Meta Pixel ID">
-            <Input value={initial.metaPixelId || 'Sin configurar'} readOnly disabled />
-            <p className="mt-1 text-xs text-muted-foreground">Lo configura Vendra. Si necesitas cambiarlo, escríbenos.</p>
-          </Field>
           <Field label="GA4 Measurement ID"><Input value={ga4Id} onChange={(e) => setGa4Id(e.target.value)} placeholder="G-XXXXXXX" /></Field>
         </div>
+      </Section>
+
+      {/* Meta */}
+      <Section
+        title="Meta (Facebook e Instagram)"
+        description="Salen de tu portafolio comercial de Meta. Los puedes capturar tú o quien maneje tus campañas."
+      >
+        <MetaConfigFields
+          value={meta}
+          onChange={setMeta}
+          tokenConfigured={initial.metaTokenConfigured}
+          domain={initial.domain}
+        />
       </Section>
 
       {/* Módulos (feature flags) */}

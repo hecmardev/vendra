@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useTransition } from 'react'
+import { useState, useEffect, useRef, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { createPortal } from 'react-dom'
 import { Phone, Mail, X, Car, Check, Loader2 } from 'lucide-react'
 import { WhatsAppIcon } from '@/components/common/whatsapp-cta/icon'
@@ -67,6 +68,20 @@ export function LeadsView ({ leads: initialLeads, saleOptions }: { leads: Lead[]
   const [pending, startTransition] = useTransition()
   const selected = leads.find((l) => l.id === selectedId) ?? null
 
+  // Lo que llega del servidor manda sobre lo optimista: trae el historial real y
+  // el estado del reporte a Meta.
+  useEffect(() => setLeads(initialLeads), [initialLeads])
+
+  // El reporte a Meta sale después de responder la acción (after()), así que la
+  // revalidación aún no lo trae: se vuelve a pedir la página unos segundos después.
+  const router = useRouter()
+  const refreshTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const refreshAfterMetaReport = () => {
+    clearTimeout(refreshTimer.current)
+    refreshTimer.current = setTimeout(() => router.refresh(), 3000)
+  }
+  useEffect(() => () => clearTimeout(refreshTimer.current), [])
+
   const openLead = (id: string | null) => {
     setSelectedId(id)
     setSelling(false)
@@ -97,6 +112,7 @@ export function LeadsView ({ leads: initialLeads, saleOptions }: { leads: Lead[]
     startTransition(async () => {
       const res = await setLeadStatusAction(id, status)
       if (res?.error) setError(res.error)
+      else refreshAfterMetaReport()
     })
   }
 
@@ -125,6 +141,7 @@ export function LeadsView ({ leads: initialLeads, saleOptions }: { leads: Lead[]
         ? { ...l, status: 'vendido', soldCarId: input.soldCarId || null, soldCarLabel, saleAmount: input.saleAmount, history }
         : l)))
       setSelling(false)
+      refreshAfterMetaReport()
     })
   }
 

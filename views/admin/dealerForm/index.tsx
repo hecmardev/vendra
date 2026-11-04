@@ -6,6 +6,8 @@ import { ChevronLeft, Loader2, KeyRound, Check } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { createDealerAction, updateDealerAction, resetDealerPasswordAction } from '@/app/admin/(panel)/actions'
+import { MetaConfigFields } from '@/components/common/meta-config-fields'
+import type { MetaConfigInput } from '@/lib/metaConfig'
 import type { DealerStats } from '@/services/admin'
 
 function Field ({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
@@ -38,12 +40,14 @@ export function DealerFormView ({ dealer }: { dealer?: DealerStats }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [whatsapp, setWhatsapp] = useState(dealer?.whatsappNumber ?? '')
-  const [pixel, setPixel] = useState(dealer?.metaPixelId ?? '')
-  const [fbVerification, setFbVerification] = useState(dealer?.metaDomainVerification ?? '')
-  // El token nunca viene del servidor: este campo solo sirve para escribir uno nuevo.
-  const [capiToken, setCapiToken] = useState('')
-  const [clearCapiToken, setClearCapiToken] = useState(false)
-  const [testEventCode, setTestEventCode] = useState(dealer?.metaTestEventCode ?? '')
+  const [meta, setMeta] = useState<MetaConfigInput>({
+    metaPixelId: dealer?.metaPixelId ?? '',
+    metaDomainVerification: dealer?.metaDomainVerification ?? '',
+    // El token nunca viene del servidor: este campo solo sirve para escribir uno nuevo.
+    metaCapiToken: '',
+    clearMetaCapiToken: false,
+    metaTestEventCode: dealer?.metaTestEventCode ?? ''
+  })
   const [ga4, setGa4] = useState(dealer?.ga4MeasurementId ?? '')
 
   const [error, setError] = useState('')
@@ -63,11 +67,7 @@ export function DealerFormView ({ dealer }: { dealer?: DealerStats }) {
           name,
           domain,
           whatsappNumber: whatsapp,
-          metaPixelId: pixel,
-          metaDomainVerification: fbVerification,
-          metaCapiToken: capiToken,
-          clearMetaCapiToken: clearCapiToken,
-          metaTestEventCode: testEventCode,
+          ...meta,
           ga4MeasurementId: ga4
         })
         : await createDealerAction({ name, domain, email, password })
@@ -136,55 +136,16 @@ export function DealerFormView ({ dealer }: { dealer?: DealerStats }) {
           <div>
             <h2 className="font-bold">Meta (Facebook e Instagram)</h2>
             <p className="text-sm text-muted-foreground">
-              Lo administra Vendra: el dealer lo ve en sus Ajustes pero no lo puede cambiar. Ambos salen
-              del Business Manager del dealer, con el acceso de socio.
+              Salen del portafolio comercial del dealer. También los puede capturar él en sus Ajustes,
+              o quien le maneje sus campañas.
             </p>
           </div>
-          <Field
-            label="Pixel (ID del conjunto de datos)"
-            hint="Administrador de eventos → el conjunto de datos del dealer → su ID. Solo números. Vacío = sin Pixel."
-          >
-            <Input value={pixel} onChange={(e) => setPixel(e.target.value)} inputMode="numeric" placeholder="1234567890123456" />
-          </Field>
-          <Field
-            label="Verificación del dominio"
-            hint={`Configuración del negocio → Seguridad de la marca → Dominios → ${domain || 'su dominio'} → "Etiqueta meta". Pega la etiqueta completa o solo su content.`}
-          >
-            <Input
-              value={fbVerification}
-              onChange={(e) => setFbVerification(e.target.value)}
-              placeholder='<meta name="facebook-domain-verification" content="…" />'
-            />
-          </Field>
-          <Field
-            label="Token de Conversions API"
-            hint="Administrador de eventos → el conjunto de datos → Configuración → API de conversiones → Generar token de acceso. Con él se reportan a Meta los leads, citas y ventas. Se guarda cifrado y no se vuelve a mostrar."
-          >
-            <Input
-              type="password"
-              autoComplete="off"
-              value={capiToken}
-              onChange={(e) => { setCapiToken(e.target.value); setClearCapiToken(false) }}
-              placeholder={dealer?.metaCapiConfigured ? 'Token configurado ✓ — escribe aquí solo para reemplazarlo' : 'Sin configurar'}
-            />
-          </Field>
-          {dealer?.metaCapiConfigured && (
-            <label className="flex cursor-pointer items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                className="h-4 w-4 rounded border-input accent-[hsl(var(--cta))]"
-                checked={clearCapiToken}
-                onChange={(e) => { setClearCapiToken(e.target.checked); if (e.target.checked) setCapiToken('') }}
-              />
-              Quitar el token (deja de reportarle a Meta)
-            </label>
-          )}
-          <Field
-            label="Código de eventos de prueba (opcional)"
-            hint='Administrador de eventos → Probar eventos. Mientras esté puesto, los eventos del servidor solo se ven ahí y NO cuentan en campañas: bórralo al terminar de probar.'
-          >
-            <Input value={testEventCode} onChange={(e) => setTestEventCode(e.target.value)} placeholder="TEST12345" />
-          </Field>
+          <MetaConfigFields
+            value={meta}
+            onChange={setMeta}
+            tokenConfigured={Boolean(dealer?.metaCapiConfigured)}
+            domain={domain}
+          />
         </section>
       )}
 
