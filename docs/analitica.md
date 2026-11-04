@@ -23,6 +23,7 @@ fases que faltan).
 | `attribution_touches` | Visitas con origen: campaña, anuncio, buscador, sitio que refirió, página de entrada | 09/oct/2026 | 0015 |
 | `car_views` | Vistas de fichas: un renglón por auto + visitante + día de México, con número de vistas y visita de origen | 13/oct/2026 | 0016 |
 | `contact_clicks` | Clics de contacto sin datos: WhatsApp, teléfono, correo, "cómo llegar"; un renglón por clic, con página, auto y visita de origen | Al aplicar la 0017 | 0017 |
+| `meta_events` | Qué se le reportó a Meta de cada lead (Lead, Contactado, Schedule, Purchase) y si llegó: sent, pending, failed, expired | Al aplicar la 0019 y configurar el token | 0019 |
 
 Cómo se unen:
 

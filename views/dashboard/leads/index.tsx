@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils'
 import { formatPrice } from '@/helpers/format'
 import { originLabel } from '@/lib/attribution'
 import { setLeadStatusAction, saveLeadNotesAction, markLeadSoldAction } from '@/app/dashboard/(panel)/leads/actions'
-import { LEAD_STATUSES, type Lead, type LeadStatus } from '@/interfaces/lead'
+import { LEAD_STATUSES, type Lead, type LeadMetaEvent, type LeadStatus } from '@/interfaces/lead'
 import { SaleForm, type SaleOption, type SaleInput } from './SaleForm'
 
 // Nuevo resalta porque es lo que hay que atender; perdido se apaga porque ya no.
@@ -27,6 +27,20 @@ const CHANNEL_LABEL: Record<string, string> = {
   telefono: 'Teléfono',
   correo: 'Correo',
   mapa: 'Cómo llegar'
+}
+
+/** Qué evento de Meta corresponde a cada renglón del historial (trigger de la 0019). */
+const META_EVENT_OF: Record<string, LeadMetaEvent['name']> = {
+  nuevo: 'Lead',
+  contactado: 'Contactado',
+  cita: 'Schedule',
+  vendido: 'Purchase'
+}
+const META_STATUS_LABEL: Record<LeadMetaEvent['status'], string> = {
+  sent: 'Reportado a Meta ✓',
+  pending: 'Reportando a Meta…',
+  failed: 'No se pudo reportar a Meta',
+  expired: 'Sin reportar a Meta (venció)'
 }
 
 /** Por cuál formulario del sitio entró (`leads.source`). */
@@ -319,12 +333,16 @@ export function LeadsView ({ leads: initialLeads, saleOptions }: { leads: Lead[]
                 <div>
                   <p className="mb-1.5 text-sm font-medium">Historial</p>
                   <ol className="space-y-1.5 border-l pl-3">
-                    {selected.history.slice().reverse().map((h, i) => (
-                      <li key={`${h.at}-${i}`} className="text-xs text-muted-foreground">
-                        <span className="font-medium capitalize text-foreground">{h.from ? h.to : 'Recibido'}</span>
-                        {' · '}{formatDate(h.at)}
-                      </li>
-                    ))}
+                    {selected.history.slice().reverse().map((h, i) => {
+                      const meta = selected.metaEvents.find((e) => e.name === META_EVENT_OF[h.to])
+                      return (
+                        <li key={`${h.at}-${i}`} className="text-xs text-muted-foreground">
+                          <span className="font-medium capitalize text-foreground">{h.from ? h.to : 'Recibido'}</span>
+                          {' · '}{formatDate(h.at)}
+                          {meta && <span className="block">{META_STATUS_LABEL[meta.status]}</span>}
+                        </li>
+                      )
+                    })}
                   </ol>
                 </div>
               )}

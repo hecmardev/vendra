@@ -40,6 +40,10 @@ export function DealerFormView ({ dealer }: { dealer?: DealerStats }) {
   const [whatsapp, setWhatsapp] = useState(dealer?.whatsappNumber ?? '')
   const [pixel, setPixel] = useState(dealer?.metaPixelId ?? '')
   const [fbVerification, setFbVerification] = useState(dealer?.metaDomainVerification ?? '')
+  // El token nunca viene del servidor: este campo solo sirve para escribir uno nuevo.
+  const [capiToken, setCapiToken] = useState('')
+  const [clearCapiToken, setClearCapiToken] = useState(false)
+  const [testEventCode, setTestEventCode] = useState(dealer?.metaTestEventCode ?? '')
   const [ga4, setGa4] = useState(dealer?.ga4MeasurementId ?? '')
 
   const [error, setError] = useState('')
@@ -55,7 +59,17 @@ export function DealerFormView ({ dealer }: { dealer?: DealerStats }) {
     setError('')
     startTransition(async () => {
       const res = isEdit
-        ? await updateDealerAction(dealer!.id, { name, domain, whatsappNumber: whatsapp, metaPixelId: pixel, metaDomainVerification: fbVerification, ga4MeasurementId: ga4 })
+        ? await updateDealerAction(dealer!.id, {
+          name,
+          domain,
+          whatsappNumber: whatsapp,
+          metaPixelId: pixel,
+          metaDomainVerification: fbVerification,
+          metaCapiToken: capiToken,
+          clearMetaCapiToken: clearCapiToken,
+          metaTestEventCode: testEventCode,
+          ga4MeasurementId: ga4
+        })
         : await createDealerAction({ name, domain, email, password })
       if (res?.error) setError(res.error)
     })
@@ -141,6 +155,35 @@ export function DealerFormView ({ dealer }: { dealer?: DealerStats }) {
               onChange={(e) => setFbVerification(e.target.value)}
               placeholder='<meta name="facebook-domain-verification" content="…" />'
             />
+          </Field>
+          <Field
+            label="Token de Conversions API"
+            hint="Administrador de eventos → el conjunto de datos → Configuración → API de conversiones → Generar token de acceso. Con él se reportan a Meta los leads, citas y ventas. Se guarda cifrado y no se vuelve a mostrar."
+          >
+            <Input
+              type="password"
+              autoComplete="off"
+              value={capiToken}
+              onChange={(e) => { setCapiToken(e.target.value); setClearCapiToken(false) }}
+              placeholder={dealer?.metaCapiConfigured ? 'Token configurado ✓ — escribe aquí solo para reemplazarlo' : 'Sin configurar'}
+            />
+          </Field>
+          {dealer?.metaCapiConfigured && (
+            <label className="flex cursor-pointer items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                className="h-4 w-4 rounded border-input accent-[hsl(var(--cta))]"
+                checked={clearCapiToken}
+                onChange={(e) => { setClearCapiToken(e.target.checked); if (e.target.checked) setCapiToken('') }}
+              />
+              Quitar el token (deja de reportarle a Meta)
+            </label>
+          )}
+          <Field
+            label="Código de eventos de prueba (opcional)"
+            hint='Administrador de eventos → Probar eventos. Mientras esté puesto, los eventos del servidor solo se ven ahí y NO cuentan en campañas: bórralo al terminar de probar.'
+          >
+            <Input value={testEventCode} onChange={(e) => setTestEventCode(e.target.value)} placeholder="TEST12345" />
           </Field>
         </section>
       )}

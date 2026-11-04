@@ -1,6 +1,8 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { after } from 'next/server'
+import { sendPendingMetaEvents } from '@/services/metaCapi'
 import { getCurrentDealer } from '@/services/dealers'
 import { updateLeadStatus, updateLeadNotes, markLeadSold, type LeadSaleInput } from '@/services/leads'
 import { LEAD_STATUSES, type LeadStatus } from '@/interfaces/lead'
@@ -17,6 +19,9 @@ export async function setLeadStatusAction (leadId: string, status: LeadStatus): 
   } catch (e) {
     return { error: e instanceof Error ? e.message : 'No se pudo actualizar el estado' }
   }
+  // El trigger de la 0019 encoló el evento, si aplica. Se reporta a Meta después
+  // de responder: el vendedor no espera.
+  after(() => sendPendingMetaEvents({ leadId }))
   revalidatePath('/dashboard/leads')
   return {}
 }
@@ -41,6 +46,7 @@ export async function markLeadSoldAction (leadId: string, input: LeadSaleInput):
   } catch (e) {
     return { error: e instanceof Error ? e.message : 'No se pudo guardar la venta' }
   }
+  after(() => sendPendingMetaEvents({ leadId }))
   revalidatePath('/dashboard/leads')
   // Si el auto pasó a vendido, cambia el inventario y el sitio público.
   if (carMarked) {

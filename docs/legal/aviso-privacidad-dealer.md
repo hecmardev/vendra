@@ -44,7 +44,8 @@ escribirnos por WhatsApp):
 
 **Con tu autorización** (solo si la das en el aviso de cookies): identificadores
 de las herramientas de publicidad y medición de Meta (Facebook, Instagram) y de
-Google, descritas en la sección 6.
+Google, descritas en la sección 6; y, si además nos dejas tus datos, la dirección
+IP y el tipo de navegador con los que nos escribiste.
 
 **No recabamos datos personales sensibles** (salud, origen étnico, creencias,
 preferencias sexuales, etc.) **ni datos financieros o patrimoniales** en este
@@ -67,8 +68,8 @@ afecte la atención que te damos:
    publicidad.
 6. Generar estadísticas sobre qué autos generan más interés.
 7. Con tu autorización expresa en el aviso de cookies: medir y mejorar nuestros
-   anuncios en Meta y Google, y mostrarte anuncios de autos que viste
-   (sección 6).
+   anuncios en Meta y Google, mostrarte anuncios de autos que viste (sección 6),
+   e informarle a Meta el resultado de tu solicitud (sección 4).
 
 **Cómo rechazar las finalidades 5 y 6:** desde el botón "Preferencias de
 cookies" al pie de cualquier página de este sitio, eligiendo "Rechazar
@@ -100,6 +101,14 @@ saber quién eres.
 Si autorizas las cookies de Meta y Google (sección 6), esas empresas reciben
 información de tu navegación en este sitio y la tratan conforme a sus propios
 avisos de privacidad.
+
+Si las autorizas y además nos dejas tus datos, le informamos a Meta que nos
+contactaste y, en su caso, que te contactamos, que agendaste una cita o que
+compraste, con el monto de la compra. Para que Meta pueda relacionarlo con tu
+cuenta, le enviamos tu teléfono, correo y nombre **cifrados de forma irreversible
+(hash)**, junto con tu dirección IP, tu tipo de navegador y sus identificadores
+de clic. Lo usamos para medir y mejorar nuestros anuncios. Si no autorizas las
+cookies, no le enviamos nada de esto.
 
 Fuera de lo anterior, solo compartiremos tus datos cuando una autoridad
 competente lo requiera conforme a la ley.

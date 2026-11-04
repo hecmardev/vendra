@@ -20,6 +20,9 @@ export interface CreateLeadInput {
   metaEventId?: string | null
   /** Lo que eligió en el aviso de cookies al dejar sus datos (0018). */
   trackingConsent?: 'accepted' | 'rejected' | null
+  /** IP y navegador, para Conversions API. Solo con aceptación (0019). */
+  clientIp?: string | null
+  clientUserAgent?: string | null
 }
 
 /**
@@ -47,7 +50,9 @@ export async function createLead (input: CreateLeadInput) {
     last_touch_id: input.lastTouchId ?? null,
     fbp: input.fbp ?? null,
     meta_event_id: input.metaEventId ?? null,
-    tracking_consent: input.trackingConsent ?? null
+    tracking_consent: input.trackingConsent ?? null,
+    client_ip: input.clientIp ?? null,
+    client_user_agent: input.clientUserAgent ?? null
   }
 
   const insert = (row: object) => supabase.from('leads').insert(row).select('id').single()
@@ -90,7 +95,8 @@ export async function listLeads (dealerId: string): Promise<Lead[]> {
       sold_car:cars!leads_sold_car_id_fkey(brand, model, year),
       first_touch:attribution_touches!leads_first_touch_id_fkey(*),
       last_touch:attribution_touches!leads_last_touch_id_fkey(*),
-      lead_status_history(from_status, to_status, changed_at)`)
+      lead_status_history(from_status, to_status, changed_at),
+      meta_events(event_name, status)`)
     .eq('dealer_id', dealerId)
     .eq('is_active', true) // oculta los leads descartados (baja lógica)
     .order('created_at', { ascending: false })
@@ -117,6 +123,7 @@ export async function listLeads (dealerId: string): Promise<Lead[]> {
     visitorId: r.visitor_id ?? null,
     viewedCars: [], // los llena la página con listViewedCarsByVisitor (services/views)
     contactClicks: [], // ídem, con listContactClicksByVisitor (services/contactClicks)
+    metaEvents: (r.meta_events ?? []).map((e: any) => ({ name: e.event_name, status: e.status })),
     createdAt: r.created_at,
     history: (r.lead_status_history ?? [])
       .map((h: any) => ({ from: h.from_status, to: h.to_status, at: h.changed_at }))
