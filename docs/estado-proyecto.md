@@ -83,9 +83,12 @@ Correr en orden si no están aplicadas (idempotentes):
   se escribe con `record_contact_click` (service role, desde
   `/api/contact-clicks`). Sin ella los clics no se registran, pero nada falla.
 - `0018_meta_pixel.sql` — Pixel de Meta por dealer: valida `meta_pixel_id`,
-  agrega `meta_domain_verification`, y un trigger impide que el dealer los
-  cambie (los administra Vendra desde el admin). En `leads`: `meta_event_id`
-  (deduplicación Pixel ↔ Conversions API) y `tracking_consent`.
+  agrega `meta_domain_verification`, y un trigger impide cambiarlos directo con
+  la sesión del dealer. El admin y los Ajustes del dealer sí los editan, pero por
+  el servidor y validados (`lib/metaConfig.ts`, `services/metaConfig.ts`); el
+  comentario de la migración, de cuando solo los editaba Vendra, quedó viejo. En
+  `leads`: `meta_event_id` (deduplicación Pixel ↔ Conversions API) y
+  `tracking_consent`.
 - `0019_meta_capi.sql` — Conversions API: `dealer_integrations` (token en Supabase
   Vault, solo service role), `meta_events` (cola y registro, encolada por
   trigger) y `leads.client_ip` / `client_user_agent`. **Pendiente de aplicar**,

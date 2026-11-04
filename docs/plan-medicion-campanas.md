@@ -201,8 +201,9 @@ En Meta, usar los parámetros de URL del anuncio con macros (`{{campaign.name}}`
 ### Fase 1 — Pixel y GA4 en el sitio
 
 > **Pixel de Meta hecho** en `feat/pixel-meta` (0018): un Pixel por dealer,
-> configurado por Vendra en el admin (el dealer lo ve sin poder cambiarlo,
-> porque Vendra le maneja las campañas con acceso de socio); verificación del
+> capturado en el admin o por el propio dealer en sus Ajustes (Pixel,
+> verificación, token y código de prueba: las campañas las puede manejar Vendra
+> u otra agencia, y el dealer no debe depender del admin); verificación del
 > dominio publicada sola; banner de consentimiento (el Pixel solo carga con
 > "Aceptar"); eventos PageView, ViewContent (marca, modelo, año, condición,
 > precio), Lead (con `event_id` = `leads.meta_event_id`, para deduplicar con la

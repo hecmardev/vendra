@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { parseMetaConfig, type MetaConfigInput } from '@/lib/metaConfig'
+import { saveMetaConfig } from '@/services/metaConfig'
 
 /**
  * Operaciones de PLATAFORMA (superadmin). Usan la service-role key porque el
@@ -226,41 +228,11 @@ export async function createDealerAccount (input: NewDealerInput): Promise<{ dea
   }
 }
 
-export interface DealerAdminPatch {
+export interface DealerAdminPatch extends MetaConfigInput {
   name: string
   domain: string
   whatsappNumber: string
-  metaPixelId: string
-  /** Código de la etiqueta facebook-domain-verification, o la etiqueta completa. */
-  metaDomainVerification: string
-  /** Token de Conversions API. Vacío = dejar el que está. */
-  metaCapiToken: string
-  /** Quitar el token: deja de reportarle a Meta. */
-  clearMetaCapiToken: boolean
-  /** Código de "Probar eventos". Quitarlo al terminar de probar: si no, no cuenta en campañas. */
-  metaTestEventCode: string
   ga4MeasurementId: string
-}
-
-/** Pixel de Meta: solo dígitos (mismo CHECK que la 0018). Vacío = sin Pixel. */
-function normalizePixelId (raw: string): string | null {
-  const v = raw.trim()
-  if (!v) return null
-  if (!/^[0-9]{6,20}$/.test(v)) throw new Error('El Pixel de Meta son solo números (Administrador de eventos → el ID del conjunto de datos).')
-  return v
-}
-
-/**
- * Verificación del dominio en Meta. Acepta el código solo o la etiqueta
- * completa que da Meta para pegar (<meta name="facebook-domain-verification"
- * content="…" />): se queda con el código.
- */
-function normalizeDomainVerification (raw: string): string | null {
-  const v = raw.trim()
-  if (!v) return null
-  const code = v.match(/content=["']([^"']+)["']/i)?.[1] ?? v
-  if (!/^[A-Za-z0-9_-]{10,100}$/.test(code)) throw new Error('El código de verificación del dominio no es válido. Pega la etiqueta que da Meta o solo su "content".')
-  return code
 }
 
 /** Edita los datos de cualquier dealer desde el panel de plataforma. */
@@ -268,7 +240,10 @@ export async function updateDealerAsAdmin (dealerId: string, patch: DealerAdminP
   await requirePlatformAdmin()
   const supabase = createAdminClient()
 
+  // Se valida todo antes de la primera escritura: un dato mal no deja el
+  // guardado a medias.
   const domain = normalizeDomain(patch.domain)
+  const metaConfig = parseMetaConfig(patch)
 
   // Mismo criterio que el alta, excluyéndose a sí mismo. Sin esto, mover un
   // dealer a un dominio ocupado revienta con el error crudo del índice único.
@@ -288,45 +263,12 @@ export async function updateDealerAsAdmin (dealerId: string, patch: DealerAdminP
       name: patch.name.trim(),
       domain,
       whatsapp_number: patch.whatsappNumber.trim() || null,
-      // La configuración de Meta solo la cambia Vendra (trigger de la 0018):
-      // este update va con el service role.
-      meta_pixel_id: normalizePixelId(patch.metaPixelId),
-      meta_domain_verification: normalizeDomainVerification(patch.metaDomainVerification),
       ga4_measurement_id: patch.ga4MeasurementId.trim() || null
     })
     .eq('id', dealerId)
   if (error) throw error
 
-  await saveMetaCapiConfig(supabase, dealerId, patch)
-}
-
-/**
- * Token de Conversions API y código de prueba (0019). El token va a Supabase
- * Vault por funciones que solo ejecuta el service role, y nunca se lee de vuelta.
- */
-async function saveMetaCapiConfig (supabase: ReturnType<typeof createAdminClient>, dealerId: string, patch: DealerAdminPatch): Promise<void> {
-  const token = patch.metaCapiToken.trim()
-  const testCode = patch.metaTestEventCode.trim() || null
-
-  if (token && !/^[A-Za-z0-9_-]{20,}$/.test(token)) {
-    throw new Error('El token de Conversions API no es válido: debe ser el texto largo que genera el Administrador de eventos, sin espacios.')
-  }
-  if (token && !patch.metaPixelId.trim()) {
-    throw new Error('Para usar el token de Conversions API primero captura el Pixel del dealer.')
-  }
-
-  if (patch.clearMetaCapiToken) {
-    const { error } = await supabase.rpc('clear_meta_capi_token', { p_dealer_id: dealerId })
-    if (error) throw error
-  } else if (token) {
-    const { error } = await supabase.rpc('set_meta_capi_token', { p_dealer_id: dealerId, p_token: token })
-    if (error) throw error
-  }
-
-  const { error } = await supabase
-    .from('dealer_integrations')
-    .upsert({ dealer_id: dealerId, meta_test_event_code: testCode, updated_at: new Date().toISOString() }, { onConflict: 'dealer_id' })
-  if (error) throw error
+  await saveMetaConfig(dealerId, metaConfig)
 }
 
 /**

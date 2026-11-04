@@ -24,6 +24,12 @@ const STANDARD = new Set(['PageView', 'ViewContent', 'Lead', 'Contact', 'FindLoc
  * El snippet oficial de Meta, escrito como función: crea la cola `fbq` (los
  * eventos que lleguen antes de que baje el script se guardan y se envían
  * después) y carga fbevents.js.
+ *
+ * Dos ajustes respecto al snippet, ambos antes del init:
+ *  - disablePushState: por defecto el Pixel manda PageView solo al cambiar la URL,
+ *    y MetaPixel ya lo manda en cada navegación; sin esto contaría doble.
+ *  - autoConfig false: apaga los eventos automáticos (SubscribedButtonClick…), que
+ *    marcan clics sin distinguir si son un lead real. Medimos los nuestros.
  */
 export function loadMetaPixel (pixelId: string): void {
   if (typeof window === 'undefined' || window.fbq) return
@@ -34,6 +40,7 @@ export function loadMetaPixel (pixelId: string): void {
   fbq.loaded = true
   fbq.version = '2.0'
   fbq.queue = []
+  fbq.disablePushState = true
   window.fbq = fbq
   if (!window._fbq) window._fbq = fbq
 
@@ -42,6 +49,7 @@ export function loadMetaPixel (pixelId: string): void {
   s.src = 'https://connect.facebook.net/en_US/fbevents.js'
   document.head.appendChild(s)
 
+  fbq('set', 'autoConfig', false, pixelId)
   fbq('init', pixelId)
 }
 
