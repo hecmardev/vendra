@@ -85,11 +85,14 @@ Correr en orden si no están aplicadas (idempotentes):
 - `0018_meta_pixel.sql` — Pixel de Meta por dealer: valida `meta_pixel_id`,
   agrega `meta_domain_verification`, y un trigger impide que el dealer los
   cambie (los administra Vendra desde el admin). En `leads`: `meta_event_id`
-  (deduplicación Pixel ↔ Conversions API) y `tracking_consent`. **Pendiente de
-  aplicar**, antes del despliegue: sin ella guardar un dealer en el admin falla,
-  y los leads se guardan sin origen.
+  (deduplicación Pixel ↔ Conversions API) y `tracking_consent`.
+- `0019_meta_capi.sql` — Conversions API: `dealer_integrations` (token en Supabase
+  Vault, solo service role), `meta_events` (cola y registro, encolada por
+  trigger) y `leads.client_ip` / `client_user_agent`. **Pendiente de aplicar**,
+  antes del despliegue: sin ella el panel de leads falla (pide `meta_events`), y
+  los leads se guardan sin origen.
 
-Hasta la `0017`, aplicadas en QA y en producción (verificado 09/oct/2026 con
+Hasta la `0018`, aplicadas en QA y en producción (verificado 09/oct/2026 con
 `migrate.mjs --status`). Requiere `psql`. Cómo aplicarlas:
 
 - **QA:** `pnpm db:migrate` (usa `.env`).

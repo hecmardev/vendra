@@ -42,6 +42,12 @@ export interface ContactCount {
   lastClickedAt: string // ISO
 }
 
+/** Lo que se le reportó a Meta de este lead (meta_events, 0019). */
+export interface LeadMetaEvent {
+  name: 'Lead' | 'Contactado' | 'Schedule' | 'Purchase'
+  status: 'pending' | 'sent' | 'failed' | 'expired'
+}
+
 /** Lead para la UI del panel. */
 export interface Lead {
   id: string
@@ -71,6 +77,7 @@ export interface Lead {
   viewedCars: ViewedCar[]
   /** Veces que ese visitante tocó WhatsApp, teléfono, correo o la dirección. */
   contactClicks: ContactCount[]
+  metaEvents: LeadMetaEvent[]
   createdAt: string // ISO
   /** Del más antiguo al más reciente. */
   history: LeadStatusChange[]

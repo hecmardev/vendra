@@ -52,15 +52,18 @@ export const isMetaPixelLoaded = (): boolean => typeof window !== 'undefined' &&
  *
  * `eventId`: para eventos que también reportará el servidor por Conversions API
  * (Lead, en la Fase B). Con el mismo id en los dos lados, Meta lo cuenta una vez.
+ *
+ * Devuelve si se mandó, para quien deba reintentarlo al aceptar (CarViewBeacon).
  */
-export function trackMeta (event: string, params: Record<string, unknown> = {}, eventId?: string): void {
-  if (!isMetaPixelLoaded()) return
+export function trackMeta (event: string, params: Record<string, unknown> = {}, eventId?: string): boolean {
+  if (!isMetaPixelLoaded()) return false
   // Si aceptó y luego cambió a rechazar, el script sigue en la pestaña: se
   // revisa la decisión vigente en cada evento.
-  if (!canUseMetaPixel(readConsentCookie())) return
+  if (!canUseMetaPixel(readConsentCookie())) return false
   const method = STANDARD.has(event) ? 'track' : 'trackCustom'
   if (eventId) window.fbq!(method, event, params, { eventID: eventId })
   else window.fbq!(method, event, params)
+  return true
 }
 
 /**

@@ -68,6 +68,9 @@ export interface DealerStats {
   whatsappNumber: string | null
   metaPixelId: string | null
   metaDomainVerification: string | null
+  /** Solo si hay token: el token nunca sale de la base hacia el admin (0019). */
+  metaCapiConfigured: boolean
+  metaTestEventCode: string | null
   ga4MeasurementId: string | null
   createdAt: string
   isActive: boolean
@@ -84,10 +87,11 @@ export async function listDealersWithStats (): Promise<DealerStats[]> {
 
   // Se listan activos y suspendidos (no los eliminados). Los contadores solo
   // cuentan registros activos (autos/leads dados de baja no suman).
-  const [dealersRes, carsRes, leadsRes] = await Promise.all([
+  const [dealersRes, carsRes, leadsRes, integrationsRes] = await Promise.all([
     supabase.from('dealers').select('*').neq('record_status', 'deleted').order('created_at', { ascending: false }),
     supabase.from('cars').select('dealer_id, status').eq('is_active', true),
-    supabase.from('leads').select('dealer_id').eq('is_active', true)
+    supabase.from('leads').select('dealer_id').eq('is_active', true),
+    supabase.from('dealer_integrations').select('dealer_id, meta_capi_token_secret_id, meta_test_event_code')
   ])
   if (dealersRes.error) throw dealersRes.error
   if (carsRes.error) throw carsRes.error
@@ -95,6 +99,8 @@ export async function listDealersWithStats (): Promise<DealerStats[]> {
 
   const cars = carsRes.data ?? []
   const leads = leadsRes.data ?? []
+  // Sin la 0019 la tabla no existe: el admin sigue funcionando, sin Conversions API.
+  const integrations = new Map((integrationsRes.data ?? []).map((i: any) => [i.dealer_id, i]))
 
   return (dealersRes.data ?? []).map((d: any) => ({
     id: d.id,
@@ -103,6 +109,8 @@ export async function listDealersWithStats (): Promise<DealerStats[]> {
     whatsappNumber: d.whatsapp_number ?? null,
     metaPixelId: d.meta_pixel_id ?? null,
     metaDomainVerification: d.meta_domain_verification ?? null,
+    metaCapiConfigured: Boolean((integrations.get(d.id) as any)?.meta_capi_token_secret_id),
+    metaTestEventCode: (integrations.get(d.id) as any)?.meta_test_event_code ?? null,
     ga4MeasurementId: d.ga4_measurement_id ?? null,
     createdAt: d.created_at,
     isActive: d.is_active,
@@ -225,6 +233,12 @@ export interface DealerAdminPatch {
   metaPixelId: string
   /** Código de la etiqueta facebook-domain-verification, o la etiqueta completa. */
   metaDomainVerification: string
+  /** Token de Conversions API. Vacío = dejar el que está. */
+  metaCapiToken: string
+  /** Quitar el token: deja de reportarle a Meta. */
+  clearMetaCapiToken: boolean
+  /** Código de "Probar eventos". Quitarlo al terminar de probar: si no, no cuenta en campañas. */
+  metaTestEventCode: string
   ga4MeasurementId: string
 }
 
@@ -281,6 +295,37 @@ export async function updateDealerAsAdmin (dealerId: string, patch: DealerAdminP
       ga4_measurement_id: patch.ga4MeasurementId.trim() || null
     })
     .eq('id', dealerId)
+  if (error) throw error
+
+  await saveMetaCapiConfig(supabase, dealerId, patch)
+}
+
+/**
+ * Token de Conversions API y código de prueba (0019). El token va a Supabase
+ * Vault por funciones que solo ejecuta el service role, y nunca se lee de vuelta.
+ */
+async function saveMetaCapiConfig (supabase: ReturnType<typeof createAdminClient>, dealerId: string, patch: DealerAdminPatch): Promise<void> {
+  const token = patch.metaCapiToken.trim()
+  const testCode = patch.metaTestEventCode.trim() || null
+
+  if (token && !/^[A-Za-z0-9_-]{20,}$/.test(token)) {
+    throw new Error('El token de Conversions API no es válido: debe ser el texto largo que genera el Administrador de eventos, sin espacios.')
+  }
+  if (token && !patch.metaPixelId.trim()) {
+    throw new Error('Para usar el token de Conversions API primero captura el Pixel del dealer.')
+  }
+
+  if (patch.clearMetaCapiToken) {
+    const { error } = await supabase.rpc('clear_meta_capi_token', { p_dealer_id: dealerId })
+    if (error) throw error
+  } else if (token) {
+    const { error } = await supabase.rpc('set_meta_capi_token', { p_dealer_id: dealerId, p_token: token })
+    if (error) throw error
+  }
+
+  const { error } = await supabase
+    .from('dealer_integrations')
+    .upsert({ dealer_id: dealerId, meta_test_event_code: testCode, updated_at: new Date().toISOString() }, { onConflict: 'dealer_id' })
   if (error) throw error
 }
 

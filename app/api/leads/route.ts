@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse, after } from 'next/server'
 import { getDealerByDomain } from '@/services/dealers'
 import { createLead } from '@/services/leads'
 import { notifyNewLead } from '@/services/notifications'
@@ -6,7 +6,9 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { mergeContent } from '@/lib/content'
 import { ATTR_COOKIE, VISITOR_COOKIE, isUuid, parseAttribution } from '@/lib/attribution'
 import { saveTouches } from '@/services/attribution'
-import { CONSENT_COOKIE, canMeasure, parseConsent } from '@/lib/consent'
+import { CONSENT_COOKIE, canMeasure, canUseMetaPixel, parseConsent } from '@/lib/consent'
+import { clientIpFrom } from '@/lib/metaCapi'
+import { sendPendingMetaEvents } from '@/services/metaCapi'
 
 /**
  * POST /api/leads — captura un lead desde el sitio público.
@@ -62,6 +64,11 @@ export async function POST (req: NextRequest) {
   // Id del evento Lead que el navegador ya mandó al Pixel (lib/metaPixel.ts).
   // La Fase B lo reusa en Conversions API para que Meta no lo cuente doble.
   const metaEventId = isUuid(body.eventId) ? body.eventId : null
+  // IP y navegador: Meta los usa para reconocer a la persona. Solo sirven para
+  // reportarle, así que solo se guardan si aceptó (0019).
+  const accepted = canUseMetaPixel(consent)
+  const clientIp = accepted ? clientIpFrom(req.headers) : null
+  const clientUserAgent = accepted ? req.headers.get('user-agent')?.slice(0, 500) ?? null : null
 
   // TODO(impl): validar/sanitizar phone/email; rate limiting; Turnstile.
   const lead = await createLead({
@@ -76,8 +83,14 @@ export async function POST (req: NextRequest) {
     visitorId,
     fbp,
     metaEventId,
-    trackingConsent: consent
+    trackingConsent: consent,
+    clientIp,
+    clientUserAgent
   })
+
+  // Reporta el lead a Meta después de responder: el visitante no espera (0019).
+  // Si no aceptó cookies o el dealer no tiene token, no hay nada en la cola.
+  after(() => sendPendingMetaEvents({ leadId: lead.id }))
 
   // Notifica al dealer. A prueba de fallos: nunca rompe la captura del lead.
   try {

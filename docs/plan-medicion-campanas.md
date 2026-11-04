@@ -227,6 +227,15 @@ En Meta, usar los parámetros de URL del anuncio con macros (`{{campaign.name}}`
 
 ### Fase 2 — Regreso a Meta (Conversions API)
 
+> **Hecho en `feat/meta-capi`** (`0019`, `lib/metaCapi.ts`, `services/metaCapi.ts`).
+> Diferencias con lo planeado abajo: el token va en Supabase Vault; el conjunto de
+> datos es `dealers.meta_pixel_id`, sin columna aparte; solo se reportan leads con
+> `tracking_consent = accepted`; un evento por petición (si uno pasa de 7 días,
+> Meta rechaza el lote completo); los eventos los encola un trigger y salen con
+> `after()`, y un cron diario reintenta (`/api/cron/meta-events`, requiere
+> `CRON_SECRET`). Graph API `v26.0`. Falta probarlo con un token real. Los leads
+> de formulario de Meta y de WhatsApp por anuncio entran con las Fases 3 y 4.
+
 1. **Tabla privada `dealer_integrations`** (sin `grant` a `anon` ni a
    `authenticated` de lectura): `meta_capi_token`, `meta_page_id`,
    `meta_dataset_id`, `wa_phone_number_id`, `wa_token`. Solo el service-role la lee.

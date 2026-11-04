@@ -1,0 +1,5 @@
+{
+  "crons": [
+    { "path": "/api/cron/meta-events", "schedule": "17 12 * * *" }
+  ]
+}

@@ -91,9 +91,9 @@ y el código todavía no hace. **Hay que construirlas antes de publicarlo:**
 2. **Cancelación de datos (derecho ARCO).** El proyecto usa borrado lógico
    inmutable: nada se borra. Pero si un cliente pide la cancelación, sus datos
    no pueden quedarse para siempre. Falta un procedimiento: **anonimizar** el
-   lead (nombre, teléfono, correo y mensaje → vacíos; conservar solo fechas,
-   estatus y montos para estadística) y desligarlo de su `visitor_id`. Puede
-   empezar como un botón del admin.
+   lead (nombre, teléfono, correo, mensaje, `client_ip`, `client_user_agent` y
+   `fbp` → vacíos; conservar solo fechas, estatus y montos para estadística) y
+   desligarlo de su `visitor_id`. Puede empezar como un botón del admin.
 3. **Plazos de conservación.** El aviso promete un plazo (propuesto: datos de
    leads que no compraron, 2 años desde el último contacto; de clientes que
    compraron, lo que pidan las leyes fiscales y comerciales; datos de medición
@@ -128,3 +128,14 @@ y el código todavía no hace. **Hay que construirlas antes de publicarlo:**
   estadísticas agregadas y si anonimizar datos personales para ese fin cabe
   dentro del encargo.
 - **Plazos de conservación** propuestos en § 3.3.
+- **Reportar a Meta el resultado del lead (Conversions API, migración 0019).** Se
+  le manda a Meta que la persona fue contactada, agendó cita o compró (con el
+  monto), con teléfono, correo y nombre en hash, más IP, navegador e ids de clic.
+  El código solo lo hace si la persona aceptó las cookies (`tracking_consent =
+  accepted`). Confirmar: si aceptar el banner basta como consentimiento para esto
+  o hace falta algo más explícito en el formulario, y si el texto del banner
+  ("recordar qué autos te interesan, mostrarte opciones parecidas y medir nuestros
+  anuncios") informa lo suficiente. Agregado a este borrador el 02/nov/2026: las
+  copias en Drive y en documentos de Claude son anteriores y no lo incluyen.
+- **Si "saber por qué canal nos contactaste" puede ser finalidad primaria**, sin
+  opción de rechazo. Hoy, quien rechaza la medición deja un lead sin campaña.
