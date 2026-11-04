@@ -28,6 +28,8 @@ const STANDARD = new Set(['PageView', 'ViewContent', 'Lead', 'Contact', 'FindLoc
  * Dos ajustes respecto al snippet, ambos antes del init:
  *  - disablePushState: por defecto el Pixel manda PageView solo al cambiar la URL,
  *    y MetaPixel ya lo manda en cada navegación; sin esto contaría doble.
+ *  - allowDuplicatePageViews: va junto con el anterior. Sin él, el Pixel descarta
+ *    todo PageView después del primero y solo se contaría la página de entrada.
  *  - autoConfig false: apaga los eventos automáticos (SubscribedButtonClick…), que
  *    marcan clics sin distinguir si son un lead real. Medimos los nuestros.
  */
@@ -41,6 +43,7 @@ export function loadMetaPixel (pixelId: string): void {
   fbq.version = '2.0'
   fbq.queue = []
   fbq.disablePushState = true
+  fbq.allowDuplicatePageViews = true
   window.fbq = fbq
   if (!window._fbq) window._fbq = fbq
 
