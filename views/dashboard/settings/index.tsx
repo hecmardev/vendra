@@ -149,7 +149,7 @@ export function SettingsView ({ initial }: { initial: SettingsInitial }) {
       {/* Marketing */}
       <Section title="Integraciones de marketing" description="Tus propios IDs para tracking. Vendra dispara el pixel/GA4 correcto según tu dominio.">
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="GA4 Measurement ID"><Input value={ga4Id} onChange={(e) => setGa4Id(e.target.value)} placeholder="G-XXXXXXX" /></Field>
+          <Field label="GA4 Measurement ID"><Input value={ga4Id} onChange={(e) => setGa4Id(e.target.value)} autoComplete="off" placeholder="G-XXXXXXX" /></Field>
         </div>
       </Section>
 

@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { getCurrentDealer, updateDealer, setDealerFeatures } from '@/services/dealers'
 import { saveMetaConfig } from '@/services/metaConfig'
 import { parseMetaConfig, type MetaConfigInput } from '@/lib/metaConfig'
+import { parseGa4Id } from '@/lib/ga4'
 import { hexToHsl } from '@/helpers/color'
 
 export interface SettingsInput {
@@ -39,11 +40,12 @@ export async function saveSettingsAction (input: SettingsInput): Promise<{ error
   try {
     // Antes de la primera escritura: un dato mal no deja el guardado a medias.
     const metaConfig = parseMetaConfig(input.meta)
+    const ga4Id = parseGa4Id(input.ga4Id)
 
     await updateDealer(dealer.id, {
       name: input.name.trim(),
       whatsapp_number: input.whatsapp.trim() || null,
-      ga4_measurement_id: input.ga4Id.trim() || null,
+      ga4_measurement_id: ga4Id,
       branding: {
         ...(dealer.branding as Record<string, unknown>),
         primary: hexToHsl(input.primary) || undefined,
