@@ -21,7 +21,8 @@ Son 5 pasos; solo 1–2 los captura el admin, el resto los completa el propio ve
    la redirección de `www` es **obligatoria**.
 5. **El vendedor configura lo suyo** desde `su-dominio.com/dashboard`:
    - Branding (colores/tema) y contenido (textos/slogans).
-   - Sus IDs de marketing (Meta Pixel, GA4, número de WhatsApp).
+   - Sus IDs de marketing (GA4, número de WhatsApp).
+   - Su conexión con Meta: ver [configurar-meta-dealer.md](configurar-meta-dealer.md).
    - **Da de alta sus autos** (inventario).
 
 **Aislamiento garantizado:** Row Level Security por `dealer_id` — un vendedor nunca
