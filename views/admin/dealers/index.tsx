@@ -101,6 +101,7 @@ export function AdminDealersView ({ dealers }: { dealers: DealerStats[] }) {
                   <div className="flex items-center gap-2">
                     <p className="font-medium">{d.name}</p>
                     {!d.isActive && <Badge variant="secondary" className="border-amber-500/30 bg-amber-500/15 text-amber-700">Suspendido</Badge>}
+                    {!d.legalComplete && <Badge variant="secondary" className="border-amber-500/30 bg-amber-500/15 text-amber-700">Aviso incompleto</Badge>}
                   </div>
                   <p className="text-xs text-muted-foreground">{d.domain}</p>
                 </td>
@@ -155,6 +156,7 @@ export function AdminDealersView ({ dealers }: { dealers: DealerStats[] }) {
               <div className="flex items-center gap-2">
                 <p className="font-medium">{d.name}</p>
                 {!d.isActive && <Badge variant="secondary" className="border-amber-500/30 bg-amber-500/15 text-amber-700">Suspendido</Badge>}
+                {!d.legalComplete && <Badge variant="secondary" className="border-amber-500/30 bg-amber-500/15 text-amber-700">Aviso incompleto</Badge>}
               </div>
               <p className="text-xs text-muted-foreground">{d.domain}</p>
             </div>

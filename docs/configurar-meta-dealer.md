@@ -57,8 +57,12 @@ en `/admin`, editando al dealer. Los dos ven y cambian los mismos datos.
       (ver [onboarding-vendedores.md](onboarding-vendedores.md#conectar-el-dominio-del-dealer)).
       Sin esto, los leads pierden la campaña que los trajo.
 - [ ] La migración `0019` está aplicada y `CRON_SECRET` está en Vercel.
-- [ ] **Aviso de privacidad publicado y enlazado en su sitio**, con el Pixel y la
-      Conversions API incluidos. Los borradores están en [legal/](legal/README.md).
+- [ ] **Datos del aviso capturados** en el admin o en sus Ajustes: nombre completo o
+      razón social, domicilio, correo y teléfono. Sin ellos no se puede guardar el
+      Pixel ni el token, y el admin lo marca como "Aviso incompleto".
+- [ ] **`su-dominio/aviso-de-privacidad` abre con sus datos correctos**, y él los revisó.
+- [ ] **Aceptó los términos del servicio**, firmados o por correo, y guardaste la evidencia
+      (ver [legal/](legal/README.md)).
 - [ ] El aviso de cookies aparece en su sitio y se puede aceptar o rechazar.
 
 ---

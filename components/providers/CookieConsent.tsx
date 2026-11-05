@@ -7,6 +7,7 @@ import {
   readConsentCookie, type Consent
 } from '@/lib/consent'
 import { isStorefrontPage } from '@/lib/storefront'
+import { useDealerLegal } from './DealerLegalContext'
 
 /** Tras abrir la primera ficha: deja ver el auto antes de pedir permiso. */
 const AFTER_ENGAGED_MS = 4000
@@ -30,6 +31,7 @@ export function CookieConsent () {
   const [open, setOpen] = useState(false)
   const [current, setCurrent] = useState<Consent | null>(null)
   const [saving, setSaving] = useState(false)
+  const legal = useDealerLegal()
 
   useEffect(() => {
     if (!isStorefrontPage()) return
@@ -84,13 +86,18 @@ export function CookieConsent () {
       aria-label="Aviso de cookies"
       className="fixed inset-x-3 bottom-3 z-[60] mx-auto max-w-xl rounded-xl border bg-card p-4 shadow-xl sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2"
     >
-      {/* Corto y con el beneficio para el visitante: se lee completo. Lo demás
-          (Meta, medición de anuncios, cómo cambiarlo) está en el aviso de
-          privacidad y en "Preferencias de cookies". */}
+      {/* Corto y con el beneficio para el visitante: se lee completo. El detalle
+          está en el aviso de privacidad y en "Preferencias de cookies". */}
       <p className="text-sm font-semibold">¿Te mostramos autos a tu medida?</p>
       <p className="mt-1 text-sm text-muted-foreground">
         Usamos cookies para recordar qué autos te interesan, mostrarte opciones parecidas y medir
-        nuestros anuncios. Tú decides.
+        nuestros anuncios, también con Meta. Tú decides.
+        {legal && (
+          <>
+            {' '}
+            <a href="/aviso-de-privacidad" className="underline underline-offset-2 hover:text-foreground">Aviso de privacidad</a>
+          </>
+        )}
       </p>
       {current && (
         <p className="mt-2 text-xs text-muted-foreground">

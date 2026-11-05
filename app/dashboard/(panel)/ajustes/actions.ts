@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { getCurrentDealer, updateDealer, setDealerFeatures } from '@/services/dealers'
 import { saveMetaConfig } from '@/services/metaConfig'
 import { parseMetaConfig, type MetaConfigInput } from '@/lib/metaConfig'
-import { parseGa4Id } from '@/lib/ga4'
+import { assertLegalForMeta, parseDealerLegal, type DealerLegalInput } from '@/lib/dealerLegal'
 import { hexToHsl } from '@/helpers/color'
 
 export interface SettingsInput {
@@ -14,7 +14,7 @@ export interface SettingsInput {
   email: string
   address: string
   hours: string
-  ga4Id: string
+  legal: DealerLegalInput
   meta: MetaConfigInput
   /** Colores en hex (#RRGGBB) y radius en rem. */
   primary: string
@@ -40,27 +40,29 @@ export async function saveSettingsAction (input: SettingsInput): Promise<{ error
   try {
     // Antes de la primera escritura: un dato mal no deja el guardado a medias.
     const metaConfig = parseMetaConfig(input.meta)
-    const ga4Id = parseGa4Id(input.ga4Id)
+    const legal = parseDealerLegal(input.legal)
+    const content = {
+      ...(dealer.content as Record<string, unknown>),
+      business: {
+        phone: input.phone.trim(),
+        email: input.email.trim(),
+        address: input.address.trim(),
+        hours: input.hours.trim()
+      }
+    }
+    assertLegalForMeta(legal, content, metaConfig)
 
     await updateDealer(dealer.id, {
       name: input.name.trim(),
       whatsapp_number: input.whatsapp.trim() || null,
-      ga4_measurement_id: ga4Id,
+      ...legal,
       branding: {
         ...(dealer.branding as Record<string, unknown>),
         primary: hexToHsl(input.primary) || undefined,
         cta: hexToHsl(input.cta) || undefined,
         radius: `${input.radius}rem`
       },
-      content: {
-        ...(dealer.content as Record<string, unknown>),
-        business: {
-          phone: input.phone.trim(),
-          email: input.email.trim(),
-          address: input.address.trim(),
-          hours: input.hours.trim()
-        }
-      }
+      content
     })
 
     await saveMetaConfig(dealer.id, metaConfig)

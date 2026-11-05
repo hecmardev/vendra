@@ -34,7 +34,12 @@ export default async function Page () {
     metaDomainVerification: dealer.meta_domain_verification ?? '',
     metaTokenConfigured: metaStatus.tokenConfigured,
     metaTestEventCode: metaStatus.testEventCode ?? '',
-    ga4Id: dealer.ga4_measurement_id ?? '',
+    legal: {
+      legalName: dealer.legal_name ?? '',
+      legalAddress: dealer.legal_address ?? '',
+      privacyEmail: dealer.privacy_email ?? '',
+      privacyPhone: dealer.privacy_phone ?? ''
+    },
     primary: hslToHex(branding.primary, '#1e293b'),
     cta: hslToHex(branding.cta, '#dc2626'),
     radius: branding.radius ? parseFloat(branding.radius) : 0.65,

@@ -94,15 +94,19 @@ términos: `{{MESES_LIMITE}}`, `{{DIAS_AVISO}}`, `{{DIAS_EXPORTACION}}`, `{{CIUD
 **Antes de encender el Pixel de un dealer:**
 
 1. ✅ **Rechazar la medición.** Banner, "Preferencias de cookies" en el pie, y el middleware y las APIs respetan el rechazo.
-2. ⬜ **Publicar el aviso del dealer.** Página `/aviso-de-privacidad` generada con sus datos, enlace en el pie y en el banner,
+2. ✅ **Publicar el aviso del dealer.** Página `/aviso-de-privacidad` generada con sus datos, enlace en el pie y en el banner,
    y el aviso simplificado (§ 5 de la plantilla) debajo de cada formulario.
-3. ⬜ **Datos legales del dealer.** Migración con las columnas de § 2, campos en el alta del admin y en Ajustes, y la regla de no
+3. ✅ **Datos legales del dealer.** Migración `0020`, campos en el alta del admin y en Ajustes, y la regla de no
    guardar Pixel ni token si faltan.
-4. ⬜ **Publicar el aviso de Vendra y los términos** en `vendra.com.mx`, con enlace en su pie de página.
-5. ⬜ **Aceptación de términos.** Al inicio basta guardar la aceptación firmada o por correo. Después, una casilla en el
-   panel con fecha, versión y usuario.
-6. ⬜ **No prometer lo que no existe.** Quitar GA4 de Ajustes y del admin, y las menciones a Google Analytics en
-   `views/platform/index.tsx`, mientras GA4 no esté activo (ver § 6).
+4. ✅ **Publicar el aviso de Vendra** en `vendra.com.mx/aviso-de-privacidad`, con enlace en su pie de página. Requiere las
+   variables `LEGAL_VENDRA_NAME`, `LEGAL_VENDRA_ADDRESS` y `LEGAL_VENDRA_EMAIL`; sin ellas responde 404.
+5. ⬜ **Aceptación de términos.** Al inicio, se firma o se acepta por correo y se guarda la evidencia. Después, publicarlos y
+   agregar una casilla en el panel con fecha, versión y usuario.
+6. ✅ **No prometer lo que no existe.** GA4 se ocultó de Ajustes, del admin y de `views/platform/index.tsx` (ver § 6).
+
+**Los textos publicados están en `views/legal/`.** Si cambia un aviso aquí, hay que cambiarlo también ahí y actualizar
+`LEGAL_LAST_UPDATED` en `lib/vendraLegal.ts`. Se publican antes de la revisión del abogado, por decisión del 05/nov/2026; se
+ajustan cuando responda.
 
 **Inmediatamente después:**
 

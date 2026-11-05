@@ -3,6 +3,7 @@ import { Car, Phone, Mail, MapPin, Clock, LogIn } from 'lucide-react'
 import { WhatsAppIcon } from '../whatsapp-cta/icon'
 import { AddressLink, PhoneLink, MailLink } from '../contact-links'
 import { CookiePreferencesLink } from '@/components/providers/CookieConsent'
+import { getCurrentDealerLegal } from '@/components/providers/DealerLegal'
 import { getContent } from '@/lib/content'
 import { getBusiness } from '@/lib/business'
 import { getTenant } from '@/lib/tenant'
@@ -19,6 +20,7 @@ export default async function Footer ({ dealerName }: { dealerName?: string }) {
   const business = await getBusiness()
   const tenant = await getTenant()
   const latest = tenant ? (await listPublicCars(tenant.dealerId)).slice(0, 4) : []
+  const legal = await getCurrentDealerLegal()
   const name = dealerName ?? business.name
   const wa = `https://wa.me/${business.whatsapp.replace(/[^\d]/g, '')}`
 
@@ -100,12 +102,19 @@ export default async function Footer ({ dealerName }: { dealerName?: string }) {
             <Link href="/autos" className="hover:text-primary-foreground">Autos</Link>
             <Link href="/acerca-de" className="hover:text-primary-foreground">Nosotros</Link>
             <Link href="/contacto" className="hover:text-primary-foreground">Contacto</Link>
+            {legal && <Link href="/aviso-de-privacidad" className="hover:text-primary-foreground">Aviso de privacidad</Link>}
             <CookiePreferencesLink className="hover:text-primary-foreground" />
             <Link href="/dashboard" className="inline-flex items-center gap-1 hover:text-primary-foreground">
               <LogIn className="h-3.5 w-3.5" /> Panel
             </Link>
           </nav>
         </div>
+
+        {/* Quién responde por lo publicado: términos del servicio, § 3. */}
+        <p className="mt-4 text-xs text-primary-foreground/50">
+          Los autos, precios, promociones, textos e imágenes de este sitio los publica {name}, que responde por ellos. Vendra solo
+          proporciona la tecnología y no participa en la venta. Las marcas mencionadas pertenecen a sus titulares.
+        </p>
       </div>
     </footer>
   )

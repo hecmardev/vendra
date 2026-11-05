@@ -9,7 +9,9 @@ import { cn } from '@/lib/utils'
 import { hexToHsl } from '@/helpers/color'
 import { saveSettingsAction, type SettingsInput } from '@/app/dashboard/(panel)/ajustes/actions'
 import { MetaConfigFields } from '@/components/common/meta-config-fields'
+import { DealerLegalFields } from '@/components/common/dealer-legal-fields'
 import type { MetaConfigInput } from '@/lib/metaConfig'
+import type { DealerLegalInput } from '@/lib/dealerLegal'
 
 /** Interruptor on/off (feature flags). */
 function Switch ({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
@@ -65,7 +67,7 @@ export interface SettingsInitial {
   metaDomainVerification: string
   metaTokenConfigured: boolean
   metaTestEventCode: string
-  ga4Id: string
+  legal: DealerLegalInput
   primary: string
   cta: string
   radius: number
@@ -83,7 +85,7 @@ export function SettingsView ({ initial }: { initial: SettingsInitial }) {
   const [email, setEmail] = useState(initial.email)
   const [address, setAddress] = useState(initial.address)
   const [hours, setHours] = useState(initial.hours)
-  const [ga4Id, setGa4Id] = useState(initial.ga4Id)
+  const [legal, setLegal] = useState<DealerLegalInput>(initial.legal)
   const [meta, setMeta] = useState<MetaConfigInput>({
     metaPixelId: initial.metaPixelId,
     metaDomainVerification: initial.metaDomainVerification,
@@ -113,7 +115,7 @@ export function SettingsView ({ initial }: { initial: SettingsInitial }) {
     setSaved(false)
     const input: SettingsInput = {
       name, whatsapp, phone, email, address, hours,
-      ga4Id, meta, primary, cta, radius, flags
+      legal, meta, primary, cta, radius, flags
     }
     startTransition(async () => {
       const res = await saveSettingsAction(input)
@@ -146,11 +148,12 @@ export function SettingsView ({ initial }: { initial: SettingsInitial }) {
         </div>
       </Section>
 
-      {/* Marketing */}
-      <Section title="Integraciones de marketing" description="Tus propios IDs para tracking. Vendra dispara el pixel/GA4 correcto según tu dominio.">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="GA4 Measurement ID"><Input value={ga4Id} onChange={(e) => setGa4Id(e.target.value)} autoComplete="off" placeholder="G-XXXXXXX" /></Field>
-        </div>
+      {/* Aviso de privacidad. GA4 regresa aquí al activarlo: docs/pendientes.md § 0. */}
+      <Section
+        title="Aviso de privacidad"
+        description="Estos datos se publican en tu sitio, en tu aviso de privacidad. Son necesarios para activar el Pixel de Meta. Tú respondes por ellos."
+      >
+        <DealerLegalFields value={legal} onChange={setLegal} />
       </Section>
 
       {/* Meta */}

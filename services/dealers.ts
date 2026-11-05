@@ -60,7 +60,10 @@ export interface DealerUpdate {
   whatsapp_number?: string | null
   // Sin meta_pixel_id ni meta_domain_verification: van por services/metaConfig.ts,
   // que los valida; la 0018 rechaza que se cambien directo con la sesión del dealer.
-  ga4_measurement_id?: string | null
+  legal_name?: string | null
+  legal_address?: string | null
+  privacy_email?: string | null
+  privacy_phone?: string | null
   branding?: DealerBranding
   content?: Record<string, unknown>
 }
