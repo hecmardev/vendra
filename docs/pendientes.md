@@ -8,6 +8,35 @@ hecho, bórralo: un mapa que manda a arreglar cosas resueltas deja de servir.
 
 ---
 
+## 0. Prioridad alta: justo después de la liberación
+
+Se trabajan juntos, en cuanto Pablo esté en público.
+
+### Google Analytics (GA4)
+
+Hoy el ID se captura, pero no se carga en ningún lado. Alcance en
+[legal/README.md § 6](legal/README.md).
+
+- [ ] Cargar el GA4 de cada dealer en su sitio, con su propia propiedad y solo si acepta cookies.
+- [ ] Mostrar de nuevo el campo en Ajustes y en el admin, si se oculta para el lanzamiento.
+- [ ] Descomentar `_ga` en `legal/aviso-privacidad-dealer.md` § 6 y ajustar sus § 2, § 3 y § 4.
+- [ ] Volver a anunciar GA4 en la página de Vendra (`views/platform/index.tsx`).
+- [ ] GA4 propio de `vendra.com.mx`, con su propio aviso de cookies y actualizando su aviso de privacidad.
+
+### Indexación en Google
+
+Por default, producción **no se indexa**: sin `ALLOW_INDEXING=true` sirve `Disallow: /` y `noindex`
+([liberacion-prod.md](liberacion-prod.md)).
+
+- [ ] Revisar que el contenido real de cada dealer esté listo antes de encenderla.
+- [ ] Agregar `ALLOW_INDEXING=true` en `vendra-prod` y hacer redeploy.
+- [ ] Generar `sitemap.xml` por dealer.
+- [ ] Dar de alta cada dominio en Google Search Console y mandar su sitemap.
+- [ ] Revisar títulos y descripciones de inicio, catálogo y fichas.
+- [ ] Resolver "El storefront suspendido responde 200" (§ 4), para no perder lo indexado.
+
+---
+
 ## 1. Bloquea el negocio hoy
 
 ### Los correos de leads no se envían
@@ -55,17 +84,10 @@ Dos problemas distintos:
 
 ## 2. Promesas que la landing hace y el producto no cumple
 
-### Meta Pixel y GA4 se guardan pero no se inyectan
+### GA4 se guarda pero no se inyecta
 
-Las columnas existen y el dealer las captura en Ajustes, pero nada las escribe en
-el sitio. El `TODO` vive en [app/layout.tsx](../app/layout.tsx).
-
-El plan es un contenedor de GTM compartido que dispare el Pixel y GA4 correctos
-según el dealer resuelto.
-
-Además es la herramienta correcta para medir **cuántos contactan por WhatsApp**
-sin cobrar el peaje de un formulario: hoy el botón flotante y el del footer van
-directo al chat y no dejan rastro. Medir con analítica, capturar con formulario.
+El Pixel de Meta ya funciona (0018) y los clics de contacto ya se miden (0017). GA4
+sigue sin cargarse y la landing lo anuncia: ver § 0.
 
 ---
 

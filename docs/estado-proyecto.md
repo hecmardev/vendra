@@ -34,7 +34,7 @@ inventario y leads, aislados por `dealer_id` + RLS.
 - [x] Botón "Apartar" (hecho) · [x] Notificación de leads por email (hecho, requiere `RESEND_API_KEY`).
 
 **Tier 2 (promesas que aún no funcionan)**
-- [ ] Inyectar **Meta Pixel / GA4** en el storefront (hoy solo se capturan en Ajustes).
+- [ ] Inyectar **GA4** en el storefront. Prioridad alta tras la liberación, junto con la indexación: ver `docs/pendientes.md` § 0.
 - [ ] Que los **flags de Módulos** activen/desactiven funciones reales (hoy no gatean nada).
 - [ ] **Aviso de privacidad + consentimiento de cookies** (legal + necesario para Pixel/GA4).
 
