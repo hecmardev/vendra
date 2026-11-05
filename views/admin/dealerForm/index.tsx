@@ -7,7 +7,9 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { createDealerAction, updateDealerAction, resetDealerPasswordAction } from '@/app/admin/(panel)/actions'
 import { MetaConfigFields } from '@/components/common/meta-config-fields'
+import { DealerLegalFields } from '@/components/common/dealer-legal-fields'
 import type { MetaConfigInput } from '@/lib/metaConfig'
+import type { DealerLegalInput } from '@/lib/dealerLegal'
 import type { DealerStats } from '@/services/admin'
 
 function Field ({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
@@ -48,7 +50,7 @@ export function DealerFormView ({ dealer }: { dealer?: DealerStats }) {
     clearMetaCapiToken: false,
     metaTestEventCode: dealer?.metaTestEventCode ?? ''
   })
-  const [ga4, setGa4] = useState(dealer?.ga4MeasurementId ?? '')
+  const [legal, setLegal] = useState<DealerLegalInput>(dealer?.legal ?? { legalName: '', legalAddress: '', privacyEmail: '', privacyPhone: '' })
 
   const [error, setError] = useState('')
   const [pending, startTransition] = useTransition()
@@ -68,9 +70,9 @@ export function DealerFormView ({ dealer }: { dealer?: DealerStats }) {
           domain,
           whatsappNumber: whatsapp,
           ...meta,
-          ga4MeasurementId: ga4
+          legal
         })
-        : await createDealerAction({ name, domain, email, password })
+        : await createDealerAction({ name, domain, email, password, legal })
       if (res?.error) setError(res.error)
     })
   }
@@ -119,14 +121,22 @@ export function DealerFormView ({ dealer }: { dealer?: DealerStats }) {
         </section>
       )}
 
+      <section className="space-y-4 rounded-xl border bg-card p-6">
+        <div>
+          <h2 className="font-bold">Aviso de privacidad</h2>
+          <p className="text-sm text-muted-foreground">
+            Se publican en el sitio del dealer, que responde por ellos. Mientras falten, no se publica su aviso ni carga su Pixel.
+          </p>
+        </div>
+        <DealerLegalFields value={legal} onChange={setLegal} />
+      </section>
+
       {isEdit && (
         <section className="space-y-4 rounded-xl border bg-card p-6">
-          <h2 className="font-bold">Contacto y marketing</h2>
+          {/* GA4 regresa aquí al activarlo: docs/pendientes.md § 0. */}
+          <h2 className="font-bold">Contacto</h2>
           <Field label="WhatsApp">
             <Input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="5215555555555" />
-          </Field>
-          <Field label="GA4 Measurement ID">
-            <Input value={ga4} onChange={(e) => setGa4(e.target.value)} autoComplete="off" placeholder="G-XXXXXXX" />
           </Field>
         </section>
       )}

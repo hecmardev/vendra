@@ -91,11 +91,14 @@ Correr en orden si no están aplicadas (idempotentes):
   `tracking_consent`.
 - `0019_meta_capi.sql` — Conversions API: `dealer_integrations` (token en Supabase
   Vault, solo service role), `meta_events` (cola y registro, encolada por
-  trigger) y `leads.client_ip` / `client_user_agent`. **Pendiente de aplicar**,
-  antes del despliegue: sin ella el panel de leads falla (pide `meta_events`), y
-  los leads se guardan sin origen.
+  trigger) y `leads.client_ip` / `client_user_agent`.
 
-Hasta la `0018`, aplicadas en QA y en producción (verificado 09/oct/2026 con
+- `0020_dealer_legal.sql` — datos del dealer para su aviso de privacidad: nombre o
+  razón social, domicilio, correo y teléfono. Sin ellos el sitio no publica el aviso
+  ni carga el Pixel. **Pendiente de aplicar**, antes del despliegue: sin ella, Ajustes
+  y el admin no pueden guardar.
+
+Hasta la `0019`, aplicadas en QA y en producción (verificado 05/nov/2026 con
 `migrate.mjs --status`). Requiere `psql`. Cómo aplicarlas:
 
 - **QA:** `pnpm db:migrate` (usa `.env`).

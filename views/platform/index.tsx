@@ -11,7 +11,7 @@ const FEATURES = [
   { icon: Globe, title: 'Tu propio dominio', desc: 'Tu página en tudominio.com, no un perfil dentro de otro sitio.' },
   { icon: WhatsAppIcon, title: 'WhatsApp integrado', desc: 'Cada auto con botón directo a tu WhatsApp, mensaje prellenado.' },
   { icon: Users, title: 'Leads en un panel', desc: 'Todos los contactos que llegan de tu sitio, ordenados en un solo lugar.' },
-  { icon: BarChart3, title: 'Marketing listo', desc: 'Conecta tu Meta Pixel y Google Analytics para medir y anunciar.' },
+  { icon: BarChart3, title: 'Marketing listo', desc: 'Conecta tu Meta Pixel para medir y anunciar.' },
   { icon: Palette, title: 'Tu marca', desc: 'Tus colores, tu logo y tus textos. Configúralos sin depender de nadie.' },
   { icon: Wand2, title: 'Sin código', desc: 'Subes autos y editas tu sitio desde un panel simple. Nosotros el resto.' }
 ]
@@ -23,7 +23,7 @@ const STEPS = [
 ]
 
 const PLANS = [
-  { name: 'Base', price: '$X', tagline: 'Para empezar a vender en línea', features: ['Sitio con tu dominio', 'Inventario ilimitado', 'Leads + WhatsApp', 'Meta Pixel y GA4'], cta: 'Empezar', highlight: false },
+  { name: 'Base', price: '$X', tagline: 'Para empezar a vender en línea', features: ['Sitio con tu dominio', 'Inventario ilimitado', 'Leads + WhatsApp', 'Meta Pixel'], cta: 'Empezar', highlight: false },
   { name: 'Pro', price: '$XX', tagline: 'Más herramientas para crecer', features: ['Todo lo de Base', 'Sección personalizada', 'Asistente de IA por WhatsApp', 'Soporte prioritario'], cta: 'Quiero Pro', highlight: true }
 ]
 
@@ -186,7 +186,10 @@ export function Landing () {
             <span className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground"><Car className="h-4 w-4" /></span>
             Vendra
           </Link>
-          <p>© {new Date().getFullYear()} Vendra. Plataforma para vendedores de autos.</p>
+          <div className="flex flex-col items-center gap-1 md:items-end">
+            <p>© {new Date().getFullYear()} Vendra. Plataforma para vendedores de autos.</p>
+            <Link href="/aviso-de-privacidad" className="underline-offset-2 hover:text-foreground hover:underline">Aviso de privacidad</Link>
+          </div>
         </div>
       </footer>
     </div>

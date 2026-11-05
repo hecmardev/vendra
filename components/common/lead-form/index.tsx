@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Loader2, CheckCircle2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { SimplifiedPrivacyNotice } from '@/components/common/simplified-privacy-notice'
 import { newEventId, trackMeta } from '@/lib/metaPixel'
 
 type Status = 'idle' | 'loading' | 'success' | 'error'
@@ -95,6 +96,8 @@ export function LeadForm ({ carId, carLabel, source }: { carId?: string; carLabe
         {status === 'loading' && <Loader2 className="h-4 w-4 animate-spin" />}
         Enviar
       </Button>
+
+      <SimplifiedPrivacyNotice />
     </form>
   )
 }

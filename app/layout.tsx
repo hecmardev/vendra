@@ -3,6 +3,7 @@ import { Manrope } from 'next/font/google'
 import { DealerThemeStyle } from '@/components/providers/DealerThemeStyle'
 import { ContactClickTracker } from '@/components/providers/ContactClickTracker'
 import { DealerMarketing, getDealerDomainVerification } from '@/components/providers/DealerMarketing'
+import { DealerLegal } from '@/components/providers/DealerLegal'
 import './globals.css'
 
 // Manrope como familia principal (variable font, auto-hospedada por next/font,
@@ -44,8 +45,10 @@ export default function RootLayout ({
         {/* Clics de WhatsApp, teléfono, correo y mapa en el storefront (0017). */}
         <ContactClickTracker />
         {/* Aviso de cookies y Pixel de Meta del dealer (0018). */}
-        <DealerMarketing />
-        {children}
+        <DealerLegal>
+          <DealerMarketing />
+          {children}
+        </DealerLegal>
       </body>
     </html>
   )

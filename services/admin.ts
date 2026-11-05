@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { parseMetaConfig, type MetaConfigInput } from '@/lib/metaConfig'
-import { parseGa4Id } from '@/lib/ga4'
+import { assertLegalForMeta, getDealerLegalInfo, parseDealerLegal, type DealerLegalInput } from '@/lib/dealerLegal'
 import { saveMetaConfig } from '@/services/metaConfig'
 
 /**
@@ -74,7 +74,9 @@ export interface DealerStats {
   /** Solo si hay token: el token nunca sale de la base hacia el admin (0019). */
   metaCapiConfigured: boolean
   metaTestEventCode: string | null
-  ga4MeasurementId: string | null
+  legal: DealerLegalInput
+  /** Si su aviso de privacidad se puede publicar. Sin esto, tampoco carga el Pixel. */
+  legalComplete: boolean
   createdAt: string
   isActive: boolean
   recordStatus: string
@@ -114,7 +116,13 @@ export async function listDealersWithStats (): Promise<DealerStats[]> {
     metaDomainVerification: d.meta_domain_verification ?? null,
     metaCapiConfigured: Boolean((integrations.get(d.id) as any)?.meta_capi_token_secret_id),
     metaTestEventCode: (integrations.get(d.id) as any)?.meta_test_event_code ?? null,
-    ga4MeasurementId: d.ga4_measurement_id ?? null,
+    legal: {
+      legalName: d.legal_name ?? '',
+      legalAddress: d.legal_address ?? '',
+      privacyEmail: d.privacy_email ?? '',
+      privacyPhone: d.privacy_phone ?? ''
+    },
+    legalComplete: Boolean(getDealerLegalInfo(d)),
     createdAt: d.created_at,
     isActive: d.is_active,
     recordStatus: d.record_status,
@@ -137,6 +145,8 @@ export interface NewDealerInput {
   domain: string
   email: string
   password: string
+  /** Se puede completar después: hasta entonces no se publica su aviso ni carga su Pixel. */
+  legal: DealerLegalInput
 }
 
 /**
@@ -151,6 +161,7 @@ export async function createDealerAccount (input: NewDealerInput): Promise<{ dea
 
   const domain = normalizeDomain(input.domain)
   const email = input.email.trim().toLowerCase()
+  const legal = parseDealerLegal(input.legal)
 
   // Un dealer suspendido CONSERVA su dominio: solo la baja lógica lo libera
   // (mismo criterio que el índice `dealers_domain_live_uk` de la 0005).
@@ -165,7 +176,7 @@ export async function createDealerAccount (input: NewDealerInput): Promise<{ dea
 
   const { data: dealer, error: dErr } = await supabase
     .from('dealers')
-    .insert({ name: input.name.trim(), domain })
+    .insert({ name: input.name.trim(), domain, ...legal })
     .select()
     .single()
   if (dErr) throw dErr
@@ -233,7 +244,7 @@ export interface DealerAdminPatch extends MetaConfigInput {
   name: string
   domain: string
   whatsappNumber: string
-  ga4MeasurementId: string
+  legal: DealerLegalInput
 }
 
 /** Edita los datos de cualquier dealer desde el panel de plataforma. */
@@ -245,7 +256,15 @@ export async function updateDealerAsAdmin (dealerId: string, patch: DealerAdminP
   // guardado a medias.
   const domain = normalizeDomain(patch.domain)
   const metaConfig = parseMetaConfig(patch)
-  const ga4Id = parseGa4Id(patch.ga4MeasurementId)
+  const legal = parseDealerLegal(patch.legal)
+
+  const { data: current, error: currentErr } = await supabase
+    .from('dealers')
+    .select('content')
+    .eq('id', dealerId)
+    .single()
+  if (currentErr) throw currentErr
+  assertLegalForMeta(legal, current.content, metaConfig)
 
   // Mismo criterio que el alta, excluyéndose a sí mismo. Sin esto, mover un
   // dealer a un dominio ocupado revienta con el error crudo del índice único.
@@ -265,7 +284,7 @@ export async function updateDealerAsAdmin (dealerId: string, patch: DealerAdminP
       name: patch.name.trim(),
       domain,
       whatsapp_number: patch.whatsappNumber.trim() || null,
-      ga4_measurement_id: ga4Id
+      ...legal
     })
     .eq('id', dealerId)
   if (error) throw error

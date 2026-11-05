@@ -35,6 +35,15 @@ Por default, producción **no se indexa**: sin `ALLOW_INDEXING=true` sirve `Disa
 - [ ] Revisar títulos y descripciones de inicio, catálogo y fichas.
 - [ ] Resolver "El storefront suspendido responde 200" (§ 4), para no perder lo indexado.
 
+### Aceptación de términos en el panel
+
+Pablo los confirma por correo, y esa es la evidencia mientras haya pocos dealers. Para no
+pedir un correo a cada uno:
+
+- [ ] Agregar al panel la casilla "Confirmo mis datos y acepto los términos del servicio".
+- [ ] Guardar fecha, usuario y versión de los términos.
+- [ ] Publicar los términos en `vendra.com.mx`, para que esa versión se pueda consultar.
+
 ---
 
 ## 1. Bloquea el negocio hoy

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { WhatsAppAction, WhatsAppButton } from '@/components/common/whatsapp-cta'
+import { SimplifiedPrivacyNotice } from '@/components/common/simplified-privacy-notice'
 import { newEventId, trackMeta } from '@/lib/metaPixel'
 import { Modal } from './Modal'
 
@@ -124,6 +125,8 @@ export function WhatsAppDialog ({
           <WhatsAppButton phone={phone} message={mensaje} onClick={enviar} className="w-full">
             Enviar y abrir WhatsApp
           </WhatsAppButton>
+
+          <SimplifiedPrivacyNotice />
         </div>
       </Modal>
     </>
