@@ -140,11 +140,9 @@ conforme a la ley.
 
 > *Este texto va debajo de cada formulario del sitio.*
 
-> **{{RESPONSABLE}}** ("{{NOMBRE_COMERCIAL}}"), con domicilio en {{DOMICILIO}}, usará tu nombre,
-> teléfono, correo y mensaje para atender tu solicitud y darle seguimiento. También medimos de
-> dónde llegaste y qué autos viste para mejorar nuestra publicidad y, si lo aceptas, se lo
-> informamos a Meta. Puedes rechazarlo en "Preferencias de cookies". Consulta el
-> [aviso de privacidad completo](/aviso-de-privacidad).
+> Usaremos tus datos para atender tu solicitud. Consulta nuestro [aviso de privacidad](/aviso-de-privacidad).
+>
+> *Versión corta por decisión de diseño (05/nov/2026). El abogado debe confirmar si basta: ver `README.md` § 5.*
 
 ## 6. Cookies y tecnologías de rastreo
 

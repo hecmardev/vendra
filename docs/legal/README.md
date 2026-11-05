@@ -141,8 +141,11 @@ ajustan cuando responda.
 - **La ley vigente y la autoridad.** Los borradores se basan en la Ley Federal de Protección de Datos Personales en Posesión de los Particulares
   publicada en el DOF el 20 de marzo de 2025, y mencionan a la Secretaría Anticorrupción y Buen Gobierno. Confirmar contra el texto oficial,
   incluida su reforma de noviembre de 2025.
-- **Aviso simplificado.** Se agregó identidad y domicilio porque fuentes secundarias indican que la ley de 2025 los pide. Confirmar su contenido
-  mínimo.
+- **Aviso debajo de los formularios.** Se publica solo una línea con enlace al aviso completo, para no saturar el formulario. Fuentes secundarias
+  indican que la ley de 2025 pide que el aviso simplificado incluya identidad y domicilio del responsable, datos tratados y finalidades. **Confirmar si esta
+  línea basta.** Si no, el texto más completo ya estuvo probado: "{{RESPONSABLE}} ("{{NOMBRE_COMERCIAL}}"), con domicilio en {{DOMICILIO}}, usará tu nombre, teléfono,
+  correo y mensaje para atender tu solicitud y darle seguimiento. También medimos de dónde llegaste y qué autos viste para mejorar nuestra publicidad y, si lo
+  aceptas, se lo informamos a Meta. Puedes rechazarlo en "Preferencias de cookies". Consulta el aviso de privacidad completo."
 - **Plazos de respuesta ARCO.** Los borradores dicen "los que establece la ley" a propósito.
 - **Medición antes de decidir.** Sin decisión, `vd_vid` y `vd_attr` ya funcionan, con opción de rechazo. ¿Puede quedarse así, o debe pedirse
   consentimiento previo?
