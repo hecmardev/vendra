@@ -35,14 +35,29 @@ Por default, producción **no se indexa**: sin `ALLOW_INDEXING=true` sirve `Disa
 - [ ] Revisar títulos y descripciones de inicio, catálogo y fichas.
 - [ ] Resolver "El storefront suspendido responde 200" (§ 1), para no perder lo indexado.
 
-### Aceptación de términos en el panel
+### Antes de liberar al segundo dealer: aceptación e historial de datos legales
 
-Pablo los confirma por correo, y esa es la evidencia mientras haya pocos dealers. Para no
-pedir un correo a cada uno:
+**Bloquea el alta del segundo dealer.** Pablo confirma por correo, y esa es la evidencia
+mientras sea el único. Con más dealers, el correo deja de escalar y hace falta evidencia
+dentro del sistema.
+
+**Aceptación de términos en el panel**
 
 - [ ] Agregar al panel la casilla "Confirmo mis datos y acepto los términos del servicio".
 - [ ] Guardar fecha, usuario y versión de los términos.
 - [ ] Publicar los términos en `vendra.com.mx`, para que esa versión se pueda consultar.
+
+**Historial de los datos legales del dealer**
+
+Decisión (24/nov/2026): el dealer sigue pudiendo editar sus datos del aviso de privacidad
+(es el responsable y debe mantenerlos al día, términos § 5), pero cada cambio queda
+registrado y Vendra se entera.
+
+- [ ] Migración con una tabla de historial y un trigger, como `lead_status_history`: quién
+      cambió, cuándo, qué decía antes y qué dice ahora (`legal_name`, `legal_address`,
+      `privacy_email`, `privacy_phone`).
+- [ ] Avisar por correo al admin de Vendra cuando un dealer cambie esos datos.
+- [ ] Mostrar el historial en el admin, en la edición del dealer.
 
 ---
 
