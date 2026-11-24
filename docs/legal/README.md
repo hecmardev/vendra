@@ -179,5 +179,9 @@ aviso del dealer no lo menciona; la fila de `_ga` queda comentada en su § 6.
 
 ## 7. Copias en Drive
 
-La carpeta "Vendra - Legal" de Google Drive tiene copias de los dos avisos y de los términos, actualizadas al 05/nov/2026 para compartirlas con el abogado.
-Si cambia algo aquí, hay que actualizarlas. En Drive, las notas de GA4 aparecen como "PENDIENTE INTERNO, NO PUBLICAR".
+Todo lo de Vendra en Google Drive está en la carpeta **"vendra-site"**:
+
+- **"Vendra - Legal":** copias de los dos avisos y de los términos, para compartirlas con el abogado. Si cambia algo aquí, hay que
+  actualizarlas. En Drive, las notas internas aparecen como "PENDIENTE INTERNO, NO PUBLICAR" o "NOTA PARA EL ABOGADO".
+- **"dealers":** una subcarpeta por dealer (por ejemplo, `pablo-quintanilla`), y dentro `contrato-legal` con sus términos y su aviso
+  ya llenos, el PDF que se le envió y su respuesta de aceptación. Es la evidencia de que aceptó.
