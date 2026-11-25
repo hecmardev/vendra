@@ -10,6 +10,7 @@ import { hexToHsl } from '@/helpers/color'
 import { saveSettingsAction, type SettingsInput } from '@/app/dashboard/(panel)/ajustes/actions'
 import { MetaConfigFields } from '@/components/common/meta-config-fields'
 import { DealerLegalFields } from '@/components/common/dealer-legal-fields'
+import { SectionTabs } from '@/components/common/section-tabs'
 import type { MetaConfigInput } from '@/lib/metaConfig'
 import type { DealerLegalInput } from '@/lib/dealerLegal'
 
@@ -33,6 +34,15 @@ const MODULES = [
   { key: 'seccion_personalizada', label: 'Sección personalizada', desc: 'Habilita una sección extra a tu medida (se cotiza aparte).' },
   { key: 'ia_whatsapp', label: 'Asistente de IA por WhatsApp', desc: 'Un bot responde preguntas básicas usando tu inventario.' }
 ]
+
+const TABS = [
+  { key: 'negocio', label: 'Negocio' },
+  { key: 'privacidad', label: 'Aviso de privacidad' },
+  { key: 'meta', label: 'Meta' },
+  { key: 'modulos', label: 'Módulos' },
+  { key: 'tema', label: 'Tema' }
+] as const
+type TabKey = typeof TABS[number]['key']
 
 function Section ({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
   return (
@@ -75,8 +85,9 @@ export interface SettingsInitial {
 }
 
 /**
- * Ajustes del dealer: negocio, marketing, módulos y tema/colores. Carga los
- * valores reales (props) y guarda vía server action (services/ toca Supabase).
+ * Ajustes del dealer en pestañas (como Contenido): negocio, aviso de privacidad,
+ * Meta, módulos y tema. Carga los valores reales (props) y guarda todo junto vía
+ * server action (services/ toca Supabase).
  */
 export function SettingsView ({ initial }: { initial: SettingsInitial }) {
   const [name, setName] = useState(initial.name)
@@ -99,6 +110,7 @@ export function SettingsView ({ initial }: { initial: SettingsInitial }) {
   const [radius, setRadius] = useState(initial.radius)
   const [flags, setFlags] = useState<Record<string, boolean>>(initial.flags)
 
+  const [tab, setTab] = useState<TabKey>('negocio')
   const [error, setError] = useState('')
   const [saved, setSaved] = useState(false)
   const [pending, startTransition] = useTransition()
@@ -130,13 +142,22 @@ export function SettingsView ({ initial }: { initial: SettingsInitial }) {
   }
 
   return (
-    <div className="space-y-6">
+    // Mismo armado que Contenido: en desktop ocupa la altura de la pantalla y solo
+    // el panel de la pestaña scrollea; encabezado, pestañas y barra de guardar
+    // quedan fijos. En móvil fluye normal.
+    <div className="flex flex-col gap-6 lg:h-[calc(100dvh-4rem)]">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Ajustes</h1>
         <p className="text-sm text-muted-foreground">Configura tu negocio, marketing y la apariencia de tu sitio.</p>
       </div>
 
+      <SectionTabs tabs={TABS} value={tab} onChange={setTab} />
+
+      {/* Un solo Guardar para todas las pestañas: lo escrito en una se conserva al
+          cambiar a otra y se guarda junto. */}
+      <div className="space-y-6 lg:min-h-0 lg:flex-1 lg:overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       {/* Negocio */}
+      {tab === 'negocio' && (
       <Section title="Información del negocio">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Nombre"><Input value={name} onChange={(e) => setName(e.target.value)} /></Field>
@@ -147,16 +168,20 @@ export function SettingsView ({ initial }: { initial: SettingsInitial }) {
           <Field label="Horario"><Input value={hours} onChange={(e) => setHours(e.target.value)} placeholder="Lun–Sáb 9:00–19:00" /></Field>
         </div>
       </Section>
+      )}
 
-      {/* Aviso de privacidad. GA4 regresa aquí al activarlo: docs/pendientes.md § 0. */}
+      {/* Aviso de privacidad. GA4 regresa como pestaña al activarlo: docs/pendientes.md § 0. */}
+      {tab === 'privacidad' && (
       <Section
         title="Aviso de privacidad"
         description="Estos datos se publican en tu sitio, en tu aviso de privacidad. Son necesarios para activar el Pixel de Meta. Tú respondes por ellos."
       >
         <DealerLegalFields value={legal} onChange={setLegal} />
       </Section>
+      )}
 
       {/* Meta */}
+      {tab === 'meta' && (
       <Section
         title="Meta (Facebook e Instagram)"
         description="Salen de tu portafolio comercial de Meta. Los puedes capturar tú o quien maneje tus campañas."
@@ -168,8 +193,10 @@ export function SettingsView ({ initial }: { initial: SettingsInitial }) {
           domain={initial.domain}
         />
       </Section>
+      )}
 
       {/* Módulos (feature flags) */}
+      {tab === 'modulos' && (
       <Section title="Módulos" description="Activa funciones opcionales de tu paquete.">
         <div className="space-y-3">
           {MODULES.map((m) => (
@@ -183,8 +210,10 @@ export function SettingsView ({ initial }: { initial: SettingsInitial }) {
           ))}
         </div>
       </Section>
+      )}
 
       {/* Tema */}
+      {tab === 'tema' && (
       <Section title="Tema y colores" description="Personaliza la apariencia de tu sitio público.">
         <div className="grid gap-6 md:grid-cols-2">
           {/* Controles */}
@@ -221,8 +250,11 @@ export function SettingsView ({ initial }: { initial: SettingsInitial }) {
           </div>
         </div>
       </Section>
+      )}
+      </div>
 
-      <div className="flex items-center justify-end gap-3">
+      {/* Barra de guardar (fija abajo del panel), igual que en Contenido. */}
+      <div className="flex items-center justify-end gap-3 rounded-xl border bg-card p-3">
         {error && <p className="text-sm text-destructive">{error}</p>}
         {saved && !error && (
           <p className="flex items-center gap-1.5 text-sm text-emerald-600">

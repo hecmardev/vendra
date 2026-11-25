@@ -5,7 +5,7 @@ import { Plus, Trash2, Eye, Check, Loader2, ImagePlus, X } from 'lucide-react'
 import Link from 'next/link'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+import { SectionTabs } from '@/components/common/section-tabs'
 import { DEFAULT_CONTENT, type SiteContent } from '@/constants/defaultContent'
 import { saveContentAction, uploadHeaderImageAction } from '@/app/dashboard/(panel)/contenido/actions'
 
@@ -194,25 +194,7 @@ export function ContentView ({ initial }: { initial: SiteContent }) {
         </Button>
       </div>
 
-      {/* Tabs de sección (subrayado en la activa). overflow-y-hidden evita una
-          scrollbar vertical de 1px que provoca el -mb-px de los botones. */}
-      <div className="flex gap-6 overflow-x-auto overflow-y-hidden border-b">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            type="button"
-            onClick={() => setTab(t.key)}
-            className={cn(
-              '-mb-px whitespace-nowrap border-b-2 px-1 pb-3 text-sm font-medium transition-colors',
-              tab === t.key
-                ? 'border-cta text-foreground'
-                : 'border-transparent text-muted-foreground hover:text-foreground'
-            )}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+      <SectionTabs tabs={TABS} value={tab} onChange={setTab} />
 
       {/* Panel de la tab activa: único que scrollea (en desktop). La barra de
           scroll se oculta (scrollbar-width/::-webkit-scrollbar) para no ensuciar
