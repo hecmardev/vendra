@@ -4,6 +4,9 @@ import { DealerThemeStyle } from '@/components/providers/DealerThemeStyle'
 import { ContactClickTracker } from '@/components/providers/ContactClickTracker'
 import { DealerMarketing, getDealerDomainVerification } from '@/components/providers/DealerMarketing'
 import { DealerLegal } from '@/components/providers/DealerLegal'
+import { requestOrigin } from '@/lib/requestOrigin'
+import { getTenant } from '@/lib/tenant'
+import { getBusiness } from '@/lib/business'
 import './globals.css'
 
 // Manrope como familia principal (variable font, auto-hospedada por next/font,
@@ -18,9 +21,17 @@ export async function generateMetadata (): Promise<Metadata> {
   // Etiqueta <meta name="facebook-domain-verification"> con la que Meta verifica
   // que el dominio es del dealer (0018). Solo en sitios de dealer que la tengan.
   const fbVerification = await getDealerDomainVerification()
+  // Base de las URLs absolutas (canonical, imágenes para compartir): el dominio
+  // que se está viendo. Sin esto, en Vercel Next las arma con la dirección
+  // *.vercel.app del proyecto y el canonical de un dealer apuntaría a otro sitio.
+  const { origin } = await requestOrigin()
+  const tenant = await getTenant()
+  const siteName = tenant ? (await getBusiness()).name : 'Vendra'
   return {
+    metadataBase: new URL(origin),
     title: 'Vendra',
     description: 'Plataforma multi-tenant de venta de autos',
+    openGraph: { siteName, locale: 'es_MX', type: 'website' },
     ...(fbVerification ? { other: { 'facebook-domain-verification': fbVerification } } : {})
   }
 }

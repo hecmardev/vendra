@@ -60,7 +60,8 @@ async function route (req: NextRequest): Promise<{ res: NextResponse; indexable:
 
 /** vendra.com.mx: reescribe a /plataforma/* y deja pasar /admin y /api. */
 function platformRoute (req: NextRequest, pathname: string): NextResponse {
-  if (pathname.startsWith('/admin') || pathname.startsWith('/api') || pathname.startsWith('/plataforma')) {
+  // /icon es el favicon (app/icon.tsx), compartido por todos los sitios.
+  if (pathname.startsWith('/admin') || pathname.startsWith('/api') || pathname.startsWith('/plataforma') || pathname === '/icon') {
     return NextResponse.next()
   }
   // El panel del dealer NO vive en el host de plataforma; cada dealer entra

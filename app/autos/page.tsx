@@ -7,7 +7,10 @@ export async function generateMetadata (): Promise<Metadata> {
   return {
     title: `Autos — ${name}`,
     // Sin "seminuevos": desde la 0009 un lote puede vender también nuevos y demos.
-    description: `Autos disponibles en ${name}. Filtra por marca, precio, año y tipo.`
+    description: `Autos disponibles en ${name}. Filtra por marca, precio, año y tipo.`,
+    // Los filtros (?marca=, ?tipo=…) son la misma página: un solo canonical para
+    // no repartir el posicionamiento entre combinaciones.
+    alternates: { canonical: '/autos' }
   }
 }
 
