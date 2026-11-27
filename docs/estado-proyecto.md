@@ -119,6 +119,9 @@ el despliegue (ver `docs/liberacion-prod.md`).
   Vendra), pendientes de revisión legal. El `README.md` de esa carpeta lista
   los cambios técnicos que hacen falta antes de publicarlos (rechazar la
   medición, anonimizar por solicitud ARCO, plazos de conservación).
+- **Contenido del sitio de un dealer:** ver `docs/contenido-dealer.md` — qué edita
+  cada dealer y dónde, qué textos de la plantilla hay que cambiar antes de publicar,
+  y checklist por dealer.
 - **Conectar un dealer con Meta:** ver `docs/configurar-meta-dealer.md` — guía
   paso a paso (portafolio, Pixel, socio, dominio, token y prueba) y ficha por dealer.
 - **Analítica:** ver `docs/analitica.md` — qué se puede medir con los datos que

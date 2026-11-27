@@ -7,6 +7,7 @@ const ICONS = [ShieldCheck, Handshake, Sparkles, Gauge]
 /** Por qué elegirnos: valores (banda oscura). */
 export async function Values () {
   const { about } = await getContent()
+  if (about.values.length === 0) return null
   return (
     <section className="relative overflow-hidden bg-primary text-primary-foreground">
       <div aria-hidden className="pointer-events-none absolute inset-0">

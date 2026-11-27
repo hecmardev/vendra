@@ -7,6 +7,8 @@ const ICONS = [Rocket, Store, ShieldCheck, Trophy]
 /** Trayectoria: hitos del negocio en una línea de tiempo horizontal. */
 export async function Timeline () {
   const { about } = await getContent()
+  // Sin hitos no se pinta: un título de trayectoria sin nada abajo se ve roto.
+  if (about.milestones.length === 0) return null
   return (
     <section className="container py-16">
       <Reveal className="mb-12 text-center">

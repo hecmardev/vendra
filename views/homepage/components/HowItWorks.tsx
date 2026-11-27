@@ -8,6 +8,7 @@ const STEP_ICONS = [Search, MessageCircle, KeyRound]
 /** Sección "cómo funciona" en 3 pasos. */
 export async function HowItWorks () {
   const { sections } = await getContent()
+  if (sections.howItWorksSteps.length === 0) return null
   return (
     <section className="relative overflow-hidden bg-primary text-primary-foreground">
       <div aria-hidden className="pointer-events-none absolute inset-0">

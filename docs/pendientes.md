@@ -152,6 +152,21 @@ porque la función no está construida. Solo `financiamiento` gatea de verdad
 Salieron de preparar la propuesta. No son errores: son cosas que nadie ha
 decidido y que conviene resolver antes de onboardear.
 
+### Reseñas de clientes
+
+Hoy un cliente **no tiene forma de dejar una reseña**. La sección de testimonios
+mostraba textos que escribe el dealer, y por default los de la plantilla, que son
+inventados. Se apagó para todos (`TESTIMONIALS_ENABLED` en `lib/siteFeatures.ts`):
+no sale en el sitio ni en el editor de Contenido.
+
+Para volver a encenderla hace falta que las reseñas sean reales. Opciones:
+
+- **Reseña después de la venta:** al marcar un lead como vendido, mandarle al
+  cliente un enlace para calificar; el dealer aprueba antes de publicarla.
+- **Traer las de Google:** mostrar las reseñas de su perfil de Google Business.
+- **Captura manual con respaldo:** el dealer las escribe, pero solo de clientes
+  reales y con su permiso. Es la más fácil de abusar.
+
 ### ¿Un auto apartado debe seguir en el catálogo?
 
 Hoy **no aparece**: la política pública de RLS solo expone los `disponible`.
