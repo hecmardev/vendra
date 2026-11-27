@@ -6,7 +6,8 @@ export async function generateMetadata (): Promise<Metadata> {
   const { name, address } = await getBusiness()
   return {
     title: `Contacto — ${name}`,
-    description: `Contáctanos por WhatsApp, teléfono o el formulario. ${address}.`
+    description: `Contáctanos por WhatsApp, teléfono o el formulario. ${address}.`,
+    alternates: { canonical: '/contacto' }
   }
 }
 

@@ -4,15 +4,18 @@ import { Car, ArrowRight } from 'lucide-react'
 export const metadata = { title: 'Sitio no disponible — Vendra' }
 
 /**
- * Página mostrada cuando el hostname no corresponde a ningún dealer activo
- * (dominio no configurado, o dealer suspendido/dado de baja). El middleware
- * reescribe aquí en vez de heredar otro tenant.
+ * Página mostrada cuando el hostname no corresponde a ningún dealer activo. El
+ * middleware reescribe aquí en vez de heredar otro tenant, con el código que toca:
+ *   - 503 si es de un dealer suspendido (?motivo=suspendido): vuelve pronto.
+ *   - 404 si el dominio no es de nadie.
  *
  * Ofrece salida a la página principal de Vendra (host de plataforma) para que
  * el visitante pueda informarse o contactar. En dev el host de plataforma es
  * localhost:3000; en prod, NEXT_PUBLIC_BASE_DOMAIN.
  */
-export default function NotAvailable () {
+export default async function NotAvailable ({ searchParams }: { searchParams: Promise<{ motivo?: string }> }) {
+  const { motivo } = await searchParams
+  const suspended = motivo === 'suspendido'
   const base = process.env.NEXT_PUBLIC_BASE_DOMAIN ?? 'vendra.com.mx'
   const vendraUrl = process.env.NODE_ENV === 'production'
     ? `https://${base}`
@@ -39,11 +42,12 @@ export default function NotAvailable () {
         </Link>
 
         <div className="rounded-2xl border bg-card p-8 shadow-sm">
-          <p className="mb-3 text-6xl font-black leading-none tracking-tighter text-muted-foreground/30">404</p>
-          <h1 className="mb-2 text-2xl font-bold tracking-tight">Sitio no disponible</h1>
+          <p className="mb-3 text-6xl font-black leading-none tracking-tighter text-muted-foreground/30">{suspended ? '503' : '404'}</p>
+          <h1 className="mb-2 text-2xl font-bold tracking-tight">{suspended ? 'Sitio en pausa' : 'Sitio no disponible'}</h1>
           <p className="mb-7 text-sm text-muted-foreground">
-            Este sitio no está disponible en este momento. Si buscas comprar o vender autos,
-            entra a Vendra y con gusto te ayudamos.
+            {suspended
+              ? 'Este sitio no está disponible temporalmente. Vuelve a intentarlo más tarde.'
+              : 'Este sitio no está disponible en este momento. Si buscas comprar o vender autos, entra a Vendra y con gusto te ayudamos.'}
           </p>
 
           <Link

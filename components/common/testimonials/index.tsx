@@ -1,10 +1,13 @@
 import { Star, Quote } from 'lucide-react'
 import { Reveal } from '@/components/motion/Reveal'
 import { getContent } from '@/lib/content'
+import { TESTIMONIALS_ENABLED } from '@/lib/siteFeatures'
 
 /** Sección de testimonios de clientes (prueba social). Reutilizable en home y about. */
 export default async function Testimonials () {
+  if (!TESTIMONIALS_ENABLED) return null
   const { about } = await getContent()
+  if (about.testimonials.length === 0) return null
   return (
     <section className="border-y bg-secondary/40">
       <div className="container py-16">

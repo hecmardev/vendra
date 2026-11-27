@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { SectionTabs } from '@/components/common/section-tabs'
+import { TESTIMONIALS_ENABLED } from '@/lib/siteFeatures'
 import { DEFAULT_CONTENT, type SiteContent } from '@/constants/defaultContent'
 import { saveContentAction, uploadHeaderImageAction } from '@/app/dashboard/(panel)/contenido/actions'
 
@@ -250,7 +251,7 @@ export function ContentView ({ initial }: { initial: SiteContent }) {
 
       {/* Nosotros */}
       {tab === 'nosotros' && (
-        <Card title="Nosotros (Acerca de)" description="Tu historia, trayectoria, valores y testimonios.">
+        <Card title="Nosotros (Acerca de)" description="Tu historia, trayectoria y valores. Si dejas vacía una lista (estadísticas, compromisos, hitos o valores), esa sección no se muestra.">
           <Field label="Etiqueta"><Input value={c.about.heroBadge} onChange={(e) => set((d) => { d.about.heroBadge = e.target.value })} /></Field>
           <Field label="Título (usa saltos de línea si quieres)"><Area value={c.about.heroTitle} rows={2} onChange={(v) => set((d) => { d.about.heroTitle = v })} /></Field>
           <Field label="Subtítulo"><Area value={c.about.heroSubtitle} onChange={(v) => set((d) => { d.about.heroSubtitle = v })} /></Field>
@@ -342,6 +343,8 @@ export function ContentView ({ initial }: { initial: SiteContent }) {
             <div className="mt-3"><AddButton label="Agregar valor" onClick={() => set((d) => { d.about.values.push({ title: '', desc: '' }) })} /></div>
           </Field>
 
+          {/* Testimonios: ocultos mientras no haya reseñas reales (TESTIMONIALS_ENABLED). */}
+          {TESTIMONIALS_ENABLED && (<>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Testimonios — título"><Input value={c.about.testimonialsTitle} onChange={(e) => set((d) => { d.about.testimonialsTitle = e.target.value })} /></Field>
             <Field label="Testimonios — subtítulo"><Input value={c.about.testimonialsSubtitle} onChange={(e) => set((d) => { d.about.testimonialsSubtitle = e.target.value })} /></Field>
@@ -362,6 +365,7 @@ export function ContentView ({ initial }: { initial: SiteContent }) {
               <AddButton label="Agregar testimonio" onClick={() => set((d) => { d.about.testimonials.push({ name: '', location: '', car: '', rating: 5, text: '' }) })} />
             </div>
           </Field>
+          </>)}
 
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="CTA — título"><Input value={c.about.ctaTitle} onChange={(e) => set((d) => { d.about.ctaTitle = e.target.value })} /></Field>

@@ -6,6 +6,8 @@ import { getContent } from '@/lib/content'
 /** Historia del negocio + compromisos que dan confianza. */
 export async function Story () {
   const { about } = await getContent()
+  // Sin párrafos ni compromisos no queda historia que contar.
+  if (about.storyParagraphs.length === 0 && about.commitments.length === 0) return null
   return (
     <section className={cn('container grid grid-cols-1 gap-10 py-16 md:items-center', about.storyImage && 'md:grid-cols-2')}>
       {/* Sin foto no se pinta el hueco: la historia pasa a ocupar el ancho
@@ -28,16 +30,18 @@ export async function Story () {
           <p key={i} className="text-muted-foreground">{p}</p>
         ))}
 
-        <ul className="grid grid-cols-1 gap-2 pt-2 sm:grid-cols-2">
-          {about.commitments.map((c) => (
-            <li key={c} className="flex items-center gap-2 text-sm">
-              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-cta/15 text-cta">
-                <Check className="h-3 w-3" />
-              </span>
-              {c}
-            </li>
-          ))}
-        </ul>
+        {about.commitments.length > 0 && (
+          <ul className="grid grid-cols-1 gap-2 pt-2 sm:grid-cols-2">
+            {about.commitments.map((c) => (
+              <li key={c} className="flex items-center gap-2 text-sm">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-cta/15 text-cta">
+                  <Check className="h-3 w-3" />
+                </span>
+                {c}
+              </li>
+            ))}
+          </ul>
+        )}
       </Reveal>
     </section>
   )

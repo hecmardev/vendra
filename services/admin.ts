@@ -77,6 +77,8 @@ export interface DealerStats {
   legal: DealerLegalInput
   /** Si su aviso de privacidad se puede publicar. Sin esto, tampoco carga el Pixel. */
   legalComplete: boolean
+  /** Si Vendra ya lo dejó aparecer en Google (0021). Necesita además ALLOW_INDEXING. */
+  allowIndexing: boolean
   createdAt: string
   isActive: boolean
   recordStatus: string
@@ -123,6 +125,7 @@ export async function listDealersWithStats (): Promise<DealerStats[]> {
       privacyPhone: d.privacy_phone ?? ''
     },
     legalComplete: Boolean(getDealerLegalInfo(d)),
+    allowIndexing: d.allow_indexing === true,
     createdAt: d.created_at,
     isActive: d.is_active,
     recordStatus: d.record_status,
@@ -245,6 +248,8 @@ export interface DealerAdminPatch extends MetaConfigInput {
   domain: string
   whatsappNumber: string
   legal: DealerLegalInput
+  /** Dejarlo aparecer en Google. Solo lo cambia Vendra (trigger de la 0021). */
+  allowIndexing: boolean
 }
 
 /** Edita los datos de cualquier dealer desde el panel de plataforma. */
@@ -284,7 +289,8 @@ export async function updateDealerAsAdmin (dealerId: string, patch: DealerAdminP
       name: patch.name.trim(),
       domain,
       whatsapp_number: patch.whatsappNumber.trim() || null,
-      ...legal
+      ...legal,
+      allow_indexing: patch.allowIndexing === true
     })
     .eq('id', dealerId)
   if (error) throw error

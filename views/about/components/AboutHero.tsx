@@ -41,21 +41,23 @@ export async function AboutHero () {
           </Reveal>
         </div>
 
-        {/* Stats */}
-        <div className="mt-12 grid grid-cols-2 gap-4 md:grid-cols-4">
-          {about.stats.map(({ value, label }, i) => {
-            const Icon = STAT_ICONS[i % STAT_ICONS.length]
-            return (
-              <Reveal key={label} delay={0.1 + i * 0.08}>
-                <div className="rounded-xl border border-white/15 bg-white/10 p-5 backdrop-blur">
-                  <Icon className="mb-2 h-5 w-5 text-primary-foreground/80" />
-                  <p className="text-2xl font-extrabold tracking-tight md:text-3xl">{value}</p>
-                  <p className="text-xs text-primary-foreground/70">{label}</p>
-                </div>
-              </Reveal>
-            )
-          })}
-        </div>
+        {/* Stats: solo si el dealer tiene números reales que mostrar. */}
+        {about.stats.length > 0 && (
+          <div className="mt-12 grid grid-cols-2 gap-4 md:grid-cols-4">
+            {about.stats.map(({ value, label }, i) => {
+              const Icon = STAT_ICONS[i % STAT_ICONS.length]
+              return (
+                <Reveal key={label} delay={0.1 + i * 0.08}>
+                  <div className="rounded-xl border border-white/15 bg-white/10 p-5 backdrop-blur">
+                    <Icon className="mb-2 h-5 w-5 text-primary-foreground/80" />
+                    <p className="text-2xl font-extrabold tracking-tight md:text-3xl">{value}</p>
+                    <p className="text-xs text-primary-foreground/70">{label}</p>
+                  </div>
+                </Reveal>
+              )
+            })}
+          </div>
+        )}
       </div>
     </section>
   )

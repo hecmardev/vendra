@@ -20,7 +20,9 @@ Son 5 pasos; solo 1–2 los captura el admin, el resto los completa el propio ve
    Ver la checklist [Conectar el dominio del dealer](#conectar-el-dominio-del-dealer):
    la redirección de `www` es **obligatoria**.
 5. **El vendedor configura lo suyo** desde `su-dominio.com/dashboard`:
-   - Branding (colores/tema) y contenido (textos/slogans).
+   - Branding (colores/tema) y contenido (textos/slogans): ver
+     [contenido-dealer.md](contenido-dealer.md). Los textos de la plantilla se
+     cambian antes de publicar.
    - Sus IDs de marketing (GA4, número de WhatsApp).
    - Su conexión con Meta: ver [configurar-meta-dealer.md](configurar-meta-dealer.md).
    - **Da de alta sus autos** (inventario).

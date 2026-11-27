@@ -25,15 +25,24 @@ Hoy el ID se captura, pero no se carga en ningún lado. Alcance en
 
 ### Indexación en Google
 
-Por default, producción **no se indexa**: sin `ALLOW_INDEXING=true` sirve `Disallow: /` y `noindex`
-([liberacion-prod.md](liberacion-prod.md)).
+Tres interruptores, todos apagados por default (`lib/seo.ts`). Un sitio solo se
+indexa con el suyo y el general encendidos; `*.vercel.app` nunca:
 
-- [ ] Revisar que el contenido real de cada dealer esté listo antes de encenderla.
+| Interruptor | Qué abre | Dónde |
+|---|---|---|
+| `ALLOW_INDEXING` | El general del ambiente (solo producción) | Variable en `vendra-prod` |
+| `ALLOW_PLATFORM_INDEXING` | `vendra.com.mx` | Variable en `vendra-prod` |
+| `dealers.allow_indexing` (0021) | Cada dealer | Casilla "Google" en el admin |
+
+- [x] `sitemap.xml` por dominio y `robots.txt` apuntando a él.
+- [ ] Revisar el contenido real de cada dealer (`contenido-dealer.md`) antes de marcarlo.
 - [ ] Agregar `ALLOW_INDEXING=true` en `vendra-prod` y hacer redeploy.
-- [ ] Generar `sitemap.xml` por dealer.
+- [ ] Marcar "Permitir que Google indexe este sitio" en el dealer que esté listo.
+- [ ] Antes de `ALLOW_PLATFORM_INDEXING`: quitar de la página de Vendra los precios de
+      ejemplo, las funciones que no existen y el botón a `hola@vendra.com.mx`.
 - [ ] Dar de alta cada dominio en Google Search Console y mandar su sitemap.
 - [ ] Revisar títulos y descripciones de inicio, catálogo y fichas.
-- [ ] Resolver "El storefront suspendido responde 200" (§ 4), para no perder lo indexado.
+- [x] El storefront suspendido responde `503` y el dominio sin dealer `404` (§ 4, 0022).
 
 ### Antes de liberar al segundo dealer: aceptación e historial de datos legales
 
@@ -63,26 +72,14 @@ registrado y Vendra se entera.
 
 ## 1. Bloquea el negocio hoy
 
-### Los correos de leads no se envían
+### ~~Los correos de leads no se envían~~ (resuelto el 24/nov/2026)
 
-El código está completo: [services/notifications.ts](../services/notifications.ts) arma el correo y
-[route.ts](../app/api/leads/route.ts) lo dispara a prueba de fallos. Falta solo
-la configuración.
+`vendra.com.mx` está verificado en Resend (registros en Cloudflare, sin recepción) y
+`vendra-prod` tiene `RESEND_API_KEY` y `RESEND_FROM = Vendra <leads@vendra.com.mx>`.
+Probado con un lead real en el sitio de Pablo: entregado.
 
-```
-if (!key) { console.warn('[notify] RESEND_API_KEY ausente: se omite el email del lead.') }
-```
-
-Cada lead entra a la base y **nadie le avisa al dealer**. Solo los ve si entra a
-su panel. Para un lote, un lead sin ver un día es una venta perdida — y desde
-que el botón de WhatsApp captura datos, el volumen subió.
-
-Lo que falta: cuenta de Resend, dominio verificado, `RESEND_API_KEY` y
-`RESEND_FROM` en Vercel.
-
-**Ojo con la dependencia:** el correo se manda a `content.business.email`, el que
-el dealer pone en Ajustes. Si ese buzón está en su propio dominio y el MX apunta
-a Vercel, el correo se va al vacío y el código ni se entera.
+**Sigue vigente:** el correo se manda a `content.business.email`, el que el dealer pone
+en Ajustes → Negocio. Si ese buzón no existe o nadie lo revisa, el aviso se pierde.
 
 ### `ALLOW_INDEXING` sigue apagado en producción
 
@@ -92,7 +89,8 @@ Sin esa variable el sitio sirve `robots.txt` con `Disallow: /` y cabecera
 Se dejó así a propósito mientras el contenido era de relleno. El posicionamiento
 es parte de lo que se le vendió, así que cada semana apagado es costo.
 
-Es una variable y un redeploy — las variables solo toman efecto en un build nuevo.
+Ya no basta con la variable: además se marca cada dealer en el admin (0021), y
+`vendra.com.mx` tiene su propia variable. Pasos en § 0, "Indexación en Google".
 
 ### Supabase y Vercel siguen en plan gratuito
 
@@ -102,7 +100,11 @@ Dos problemas distintos:
   actividad**, y cuando eso pasa todos los storefronts caen a `/not-available`.
 - El plan Hobby de Vercel es para proyectos personales, **no comerciales**. Con
   un dealer pagando, eso ya no aplica. La consecuencia no es lentitud: es la
-  cuenta pausada y el sitio del cliente caído.
+  cuenta pausada y el sitio del cliente caído. También limita los deploys: el
+  24/nov/2026 frenó uno por crear funciones demasiado seguido.
+- El plan gratuito de Supabase **no tiene respaldos** que se puedan restaurar
+  ("Last backup: No backups" en el proyecto de producción). Si algo se borra por
+  error, no hay cómo recuperarlo. Pro incluye respaldos diarios.
 
 ---
 
@@ -172,22 +174,17 @@ a un bucket privado al eliminar y purgarlas tras un periodo de gracia.
 
 ## 4. Le afecta al dealer o a su cliente
 
-### El storefront suspendido responde 200
+### ~~El storefront suspendido responde 200~~ (resuelto en la 0022)
 
-Un dealer suspendido sirve una página que **dice** 404 pero responde **HTTP 200**.
-Para un buscador eso es una página normal y válida.
+Un dealer suspendido servía una página que **decía** 404 pero respondía **HTTP 200**,
+y Google la tomaba como válida: si un dealer indexado dejaba de pagar, sus fichas se
+reemplazaban por "Sitio no disponible" y perdía su posicionamiento.
 
-El escenario caro: un dealer con sus autos indexados deja de pagar, se suspende,
-y Google reemplaza sus fichas por "Sitio no disponible". Cuando pague y lo
-reactives, su posicionamiento ya se perdió.
+Ahora el middleware distingue los dos casos con la función `dealer_site_status`
+(0022), que solo dice si un dominio es de un dealer suspendido:
 
-Hay que distinguir dos casos que hoy se ven igual:
-
-- **Dominio no registrado** → `404`. No existe.
-- **Dealer suspendido** → `503` con `Retry-After`. Está caído temporalmente.
-
-El middleware no puede distinguirlos: consulta con la anon key y la RLS le
-esconde a los inactivos, así que en ambos casos recibe `null`.
+- **Dominio no registrado** → `404`.
+- **Dealer suspendido** → `503` con `Retry-After`: Google conserva lo indexado.
 
 ### El middleware no tolera el `www` de un dealer
 
@@ -231,6 +228,21 @@ tabla.
 ---
 
 ## 5. Decisiones de producto pendientes
+
+### Reseñas de clientes
+
+Hoy un cliente **no tiene forma de dejar una reseña**. La sección de testimonios
+mostraba textos que escribe el dealer, y por default los de la plantilla, que son
+inventados. Se apagó para todos (`TESTIMONIALS_ENABLED` en `lib/siteFeatures.ts`):
+no sale en el sitio ni en el editor de Contenido.
+
+Para volver a encenderla hace falta que las reseñas sean reales. Opciones:
+
+- **Reseña después de la venta:** al marcar un lead como vendido, mandarle al
+  cliente un enlace para calificar; el dealer aprueba antes de publicarla.
+- **Traer las de Google:** mostrar las reseñas de su perfil de Google Business.
+- **Captura manual con respaldo:** el dealer las escribe, pero solo de clientes
+  reales y con su permiso. Es la más fácil de abusar.
 
 ### ¿Los vendidos deben salir en el catálogo?
 

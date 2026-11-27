@@ -6,7 +6,8 @@ export async function generateMetadata (): Promise<Metadata> {
   const { name } = await getBusiness()
   return {
     title: `Nosotros — ${name}`,
-    description: `Conoce nuestra historia, trayectoria y por qué comprar tu auto con ${name}.`
+    description: `Conoce nuestra historia, trayectoria y por qué comprar tu auto con ${name}.`,
+    alternates: { canonical: '/acerca-de' }
   }
 }
 

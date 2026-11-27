@@ -6,7 +6,10 @@ import { getVendraLegal } from '@/lib/vendraLegal'
 
 export async function generateMetadata (): Promise<Metadata> {
   const legal = await getCurrentDealerLegal()
-  return { title: legal ? `Aviso de privacidad — ${legal.commercialName}` : 'Aviso de privacidad' }
+  return {
+    title: legal ? `Aviso de privacidad — ${legal.commercialName}` : 'Aviso de privacidad',
+    alternates: { canonical: '/aviso-de-privacidad' }
+  }
 }
 
 /** Aviso de privacidad del dealer de este dominio. No se publica con datos incompletos. */
