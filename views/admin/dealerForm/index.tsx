@@ -34,7 +34,7 @@ function genPassword (): string {
  * Alta y edición de dealers desde el panel de plataforma. En alta se crea
  * además el usuario de acceso; en edición solo se tocan los datos del dealer.
  */
-export function DealerFormView ({ dealer }: { dealer?: DealerStats }) {
+export function DealerFormView ({ dealer, indexingEnabled = false }: { dealer?: DealerStats; indexingEnabled?: boolean }) {
   const isEdit = Boolean(dealer)
 
   const [name, setName] = useState(dealer?.name ?? '')
@@ -51,6 +51,7 @@ export function DealerFormView ({ dealer }: { dealer?: DealerStats }) {
     metaTestEventCode: dealer?.metaTestEventCode ?? ''
   })
   const [legal, setLegal] = useState<DealerLegalInput>(dealer?.legal ?? { legalName: '', legalAddress: '', privacyEmail: '', privacyPhone: '' })
+  const [allowIndexing, setAllowIndexing] = useState(dealer?.allowIndexing ?? false)
 
   const [error, setError] = useState('')
   const [pending, startTransition] = useTransition()
@@ -70,7 +71,8 @@ export function DealerFormView ({ dealer }: { dealer?: DealerStats }) {
           domain,
           whatsappNumber: whatsapp,
           ...meta,
-          legal
+          legal,
+          allowIndexing
         })
         : await createDealerAction({ name, domain, email, password, legal })
       if (res?.error) setError(res.error)
@@ -138,6 +140,33 @@ export function DealerFormView ({ dealer }: { dealer?: DealerStats }) {
           <Field label="WhatsApp">
             <Input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="5215555555555" />
           </Field>
+        </section>
+      )}
+
+      {isEdit && (
+        <section className="space-y-4 rounded-xl border bg-card p-6">
+          <div>
+            <h2 className="font-bold">Google</h2>
+            <p className="text-sm text-muted-foreground">
+              Enciéndelo solo cuando su contenido sea real: sin textos de la plantilla, con sus autos y su aviso de
+              privacidad (docs/contenido-dealer.md). Solo Vendra lo puede cambiar.
+            </p>
+          </div>
+          <label className="flex cursor-pointer items-start gap-2 text-sm">
+            <input
+              type="checkbox"
+              className="mt-0.5 h-4 w-4 rounded border-input accent-[hsl(var(--cta))]"
+              checked={allowIndexing}
+              onChange={(e) => setAllowIndexing(e.target.checked)}
+            />
+            <span>Permitir que Google indexe este sitio</span>
+          </label>
+          {allowIndexing && !indexingEnabled && (
+            <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-700">
+              Este ambiente tiene la indexación apagada (ALLOW_INDEXING). El sitio quedará marcado, pero Google no lo
+              verá hasta encenderla en Vercel.
+            </p>
+          )}
         </section>
       )}
 

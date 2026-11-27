@@ -95,10 +95,13 @@ Correr en orden si no están aplicadas (idempotentes):
 
 - `0020_dealer_legal.sql` — datos del dealer para su aviso de privacidad: nombre o
   razón social, domicilio, correo y teléfono. Sin ellos el sitio no publica el aviso
-  ni carga el Pixel. **Pendiente de aplicar**, antes del despliegue: sin ella, Ajustes
-  y el admin no pueden guardar.
+  ni carga el Pixel.
+- `0021_dealer_indexing.sql` — `dealers.allow_indexing`: el interruptor de Google de
+  cada dealer, apagado al crearse. Solo lo cambia Vendra desde el admin (trigger
+  `dealers_indexing_guard`). **Pendiente de aplicar**, antes del despliegue: sin ella
+  el sitio sigue funcionando (el middleware lo tolera), pero el admin no puede guardar.
 
-Hasta la `0019`, aplicadas en QA y en producción (verificado 05/nov/2026 con
+Hasta la `0020`, aplicadas en QA y en producción (verificado 24/nov/2026 con
 `migrate.mjs --status`). Requiere `psql`. Cómo aplicarlas:
 
 - **QA:** `pnpm db:migrate` (usa `.env`).

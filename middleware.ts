@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import ResolveDealerMiddleware from '@/middlewares/ResolveDealerMiddleware'
 import DashboardAuthMiddleware, { isDashboardScope } from '@/middlewares/DashboardAuthMiddleware'
 import AttributionMiddleware from '@/middlewares/AttributionMiddleware'
-import { DEALER_ID_HEADER, DEALER_DOMAIN_HEADER } from '@/lib/tenant'
-import { isIndexable } from '@/lib/seo'
+import { DEALER_ID_HEADER, DEALER_DOMAIN_HEADER, type TenantContext } from '@/lib/tenant'
+import { canIndexDealer, canIndexPlatform } from '@/lib/seo'
 
 function normalizeHost (host: string): string {
   return host.split(':')[0].toLowerCase()
@@ -33,41 +33,51 @@ function isPlatformHost (host: string): boolean {
  *     si es /dashboard valida sesión.
  */
 export default async function middleware (req: NextRequest) {
-  const res = await route(req)
+  const { res, indexable } = await route(req)
   // robots.txt pide no rastrear; esta cabecera pide además no indexar, que es lo
-  // que saca de los buscadores lo que ya hubieran alcanzado a guardar.
-  if (!isIndexable()) res.headers.set('x-robots-tag', 'noindex, nofollow')
+  // que saca de los buscadores lo que ya hubieran alcanzado a guardar. Se decide
+  // por sitio (lib/seo.ts): Vendra y cada dealer tienen su propio interruptor.
+  if (!indexable) res.headers.set('x-robots-tag', 'noindex, nofollow')
   return res
 }
 
-async function route (req: NextRequest) {
+async function route (req: NextRequest): Promise<{ res: NextResponse; indexable: boolean }> {
   const host = normalizeHost(req.headers.get('host') ?? '')
   const { pathname } = req.nextUrl
 
   // 1) SITIO DE PLATAFORMA
   if (isPlatformHost(host)) {
-    if (pathname.startsWith('/admin') || pathname.startsWith('/api') || pathname.startsWith('/plataforma')) {
-      return NextResponse.next()
-    }
-    // El panel del dealer NO vive en el host de plataforma; cada dealer entra
-    // desde su propio dominio. Si alguien llega a /dashboard aquí, lo mandamos a
-    // la landing en vez de un 404 confuso.
-    if (isDashboardScope(pathname)) {
-      const url = req.nextUrl.clone()
-      url.pathname = '/'
-      return NextResponse.redirect(url)
-    }
-    const url = req.nextUrl.clone()
-    url.pathname = `/plataforma${pathname === '/' ? '' : pathname}`
-    return NextResponse.rewrite(url)
+    return { res: platformRoute(req, pathname), indexable: canIndexPlatform(host) }
   }
 
   // 2) SITIO DE DEALER (storefront)
   const tenant = await new ResolveDealerMiddleware().resolve(req)
   if (!tenant) {
-    return NextResponse.rewrite(new URL('/not-available', req.url))
+    return { res: NextResponse.rewrite(new URL('/not-available', req.url)), indexable: false }
   }
+  return { res: await dealerRoute(req, pathname, host, tenant), indexable: canIndexDealer(host, tenant.allowIndexing) }
+}
 
+/** vendra.com.mx: reescribe a /plataforma/* y deja pasar /admin y /api. */
+function platformRoute (req: NextRequest, pathname: string): NextResponse {
+  if (pathname.startsWith('/admin') || pathname.startsWith('/api') || pathname.startsWith('/plataforma')) {
+    return NextResponse.next()
+  }
+  // El panel del dealer NO vive en el host de plataforma; cada dealer entra
+  // desde su propio dominio. Si alguien llega a /dashboard aquí, lo mandamos a
+  // la landing en vez de un 404 confuso.
+  if (isDashboardScope(pathname)) {
+    const url = req.nextUrl.clone()
+    url.pathname = '/'
+    return NextResponse.redirect(url)
+  }
+  const url = req.nextUrl.clone()
+  url.pathname = `/plataforma${pathname === '/' ? '' : pathname}`
+  return NextResponse.rewrite(url)
+}
+
+/** Sitio de un dealer: inyecta los headers de tenant y valida la sesión del panel. */
+async function dealerRoute (req: NextRequest, pathname: string, host: string, tenant: TenantContext): Promise<NextResponse> {
   const requestHeaders = new Headers(req.headers)
   requestHeaders.set(DEALER_ID_HEADER, tenant.dealerId)
   requestHeaders.set(DEALER_DOMAIN_HEADER, tenant.domain)

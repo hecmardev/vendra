@@ -107,9 +107,12 @@ Antes de publicarlo o de encender la indexación en Google:
       autorización.
 - [ ] **Revisión final:** recorrer el sitio como cliente (Inicio, Autos, una ficha,
       Nosotros, Contacto) en computadora y celular.
+- [ ] **Google:** en el admin, al editar al dealer, marcar **"Permitir que Google
+      indexe este sitio"**. Todo dealer nuevo empieza sin indexar. Después, darlo de alta
+      en Google Search Console y mandar su sitemap (`su-dominio/sitemap.xml`).
 
 ## Fichas
 
-| Dealer | Negocio | Aviso | Marca | Inicio | Nosotros | Autos | Revisión final | Fecha |
-|---|---|---|---|---|---|---|---|---|
-| Pablo Quintanilla | ✅ | ✅ | ☐ | ☐ | ☐ | ☐ | ☐ | |
+| Dealer | Negocio | Aviso | Marca | Inicio | Nosotros | Autos | Revisión final | Google | Fecha |
+|---|---|---|---|---|---|---|---|---|---|
+| Pablo Quintanilla | ✅ | ✅ | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ | |

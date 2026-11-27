@@ -25,12 +25,21 @@ Hoy el ID se captura, pero no se carga en ningún lado. Alcance en
 
 ### Indexación en Google
 
-Por default, producción **no se indexa**: sin `ALLOW_INDEXING=true` sirve `Disallow: /` y `noindex`
-([liberacion-prod.md](liberacion-prod.md)).
+Tres interruptores, todos apagados por default (`lib/seo.ts`). Un sitio solo se
+indexa con el suyo y el general encendidos; `*.vercel.app` nunca:
 
-- [ ] Revisar que el contenido real de cada dealer esté listo antes de encenderla.
+| Interruptor | Qué abre | Dónde |
+|---|---|---|
+| `ALLOW_INDEXING` | El general del ambiente (solo producción) | Variable en `vendra-prod` |
+| `ALLOW_PLATFORM_INDEXING` | `vendra.com.mx` | Variable en `vendra-prod` |
+| `dealers.allow_indexing` (0021) | Cada dealer | Casilla "Google" en el admin |
+
+- [x] `sitemap.xml` por dominio y `robots.txt` apuntando a él.
+- [ ] Revisar el contenido real de cada dealer (`contenido-dealer.md`) antes de marcarlo.
 - [ ] Agregar `ALLOW_INDEXING=true` en `vendra-prod` y hacer redeploy.
-- [ ] Generar `sitemap.xml` por dealer.
+- [ ] Marcar "Permitir que Google indexe este sitio" en el dealer que esté listo.
+- [ ] Antes de `ALLOW_PLATFORM_INDEXING`: quitar de la página de Vendra los precios de
+      ejemplo, las funciones que no existen y el botón a `hola@vendra.com.mx`.
 - [ ] Dar de alta cada dominio en Google Search Console y mandar su sitemap.
 - [ ] Revisar títulos y descripciones de inicio, catálogo y fichas.
 - [ ] Resolver "El storefront suspendido responde 200" (§ 1), para no perder lo indexado.
