@@ -98,8 +98,12 @@ Correr en orden si no están aplicadas (idempotentes):
   ni carga el Pixel.
 - `0021_dealer_indexing.sql` — `dealers.allow_indexing`: el interruptor de Google de
   cada dealer, apagado al crearse. Solo lo cambia Vendra desde el admin (trigger
-  `dealers_indexing_guard`). **Pendiente de aplicar**, antes del despliegue: sin ella
-  el sitio sigue funcionando (el middleware lo tolera), pero el admin no puede guardar.
+  `dealers_indexing_guard`). **Pendiente de aplicar en producción**, antes del
+  despliegue: sin ella el sitio sigue funcionando (el middleware lo tolera), pero el
+  admin no puede guardar.
+- `0022_dealer_site_status.sql` — función `dealer_site_status`: dice si un dominio es
+  de un dealer suspendido, para responder `503` en vez de `404` y que Google conserve
+  lo indexado. **Pendiente de aplicar**; sin ella, un dealer suspendido responde `404`.
 
 Hasta la `0020`, aplicadas en QA y en producción (verificado 24/nov/2026 con
 `migrate.mjs --status`). Requiere `psql`. Cómo aplicarlas:

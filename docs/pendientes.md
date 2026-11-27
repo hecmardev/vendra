@@ -42,7 +42,7 @@ indexa con el suyo y el general encendidos; `*.vercel.app` nunca:
       ejemplo, las funciones que no existen y el botón a `hola@vendra.com.mx`.
 - [ ] Dar de alta cada dominio en Google Search Console y mandar su sitemap.
 - [ ] Revisar títulos y descripciones de inicio, catálogo y fichas.
-- [ ] Resolver "El storefront suspendido responde 200" (§ 1), para no perder lo indexado.
+- [x] El storefront suspendido responde `503` y el dominio sin dealer `404` (§ 1, 0022).
 
 ### Antes de liberar al segundo dealer: aceptación e historial de datos legales
 
@@ -72,24 +72,17 @@ registrado y Vendra se entera.
 
 ## 1. Le afectan al dealer o a su cliente
 
-### El storefront suspendido responde 200
+### ~~El storefront suspendido responde 200~~ (resuelto en la 0022)
 
-Un dealer suspendido sirve una página que **dice** 404 pero responde **HTTP 200**.
-Para un buscador eso es una página normal y válida, no un error.
+Un dealer suspendido servía una página que **decía** 404 pero respondía **HTTP 200**,
+y Google la tomaba como válida: si un dealer indexado dejaba de pagar, sus fichas se
+reemplazaban por "Sitio no disponible" y perdía su posicionamiento.
 
-El escenario caro: un dealer con sus autos ya indexados deja de pagar, se
-suspende, y Google recorre su dominio y reemplaza sus fichas por "Sitio no
-disponible". Cuando pague y lo reactives, su posicionamiento ya se perdió.
+Ahora el middleware distingue los dos casos con la función `dealer_site_status`
+(0022), que solo dice si un dominio es de un dealer suspendido:
 
-Lo correcto es distinguir dos casos que hoy se ven igual:
-
-- **Dominio no registrado** → `404`. No existe, que lo olvide.
-- **Dealer suspendido** → `503` con `Retry-After`. Está caído temporalmente, que
-  conserve lo indexado.
-
-El middleware hoy no puede distinguirlos: `ResolveDealerMiddleware` consulta con
-la anon key y la RLS le esconde a los inactivos, así que en ambos casos recibe
-`null`.
+- **Dominio no registrado** → `404`.
+- **Dealer suspendido** → `503` con `Retry-After`: Google conserva lo indexado.
 
 ### Las fotos de un dealer eliminado siguen siendo públicas
 

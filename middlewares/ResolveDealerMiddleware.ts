@@ -18,6 +18,28 @@ export default class ResolveDealerMiddleware {
   }
 }
 
+/**
+ * ¿El dominio es de un dealer suspendido? (0022). Para responder 503 en vez de
+ * 404: suspendido es temporal y Google debe conservar lo indexado. Ante cualquier
+ * falla (sin la migración, sin red) responde false, que es el 404 de siempre.
+ */
+export async function isSuspendedDealerDomain (host: string): Promise<boolean> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  if (!url || !anon) return false
+  try {
+    const res = await fetch(`${url}/rest/v1/rpc/dealer_site_status`, {
+      method: 'POST',
+      headers: { apikey: anon, Authorization: `Bearer ${anon}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_domain: normalizeHost(host) })
+    })
+    if (!res.ok) return false
+    return (await res.json()) === 'suspended'
+  } catch {
+    return false
+  }
+}
+
 /** El tenant más lo que el middleware necesita para decidir la indexación (0021). */
 export interface ResolvedDealer extends TenantContext {
   allowIndexing: boolean

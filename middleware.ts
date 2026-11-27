@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import ResolveDealerMiddleware from '@/middlewares/ResolveDealerMiddleware'
+import ResolveDealerMiddleware, { isSuspendedDealerDomain } from '@/middlewares/ResolveDealerMiddleware'
 import DashboardAuthMiddleware, { isDashboardScope } from '@/middlewares/DashboardAuthMiddleware'
 import AttributionMiddleware from '@/middlewares/AttributionMiddleware'
 import { DEALER_ID_HEADER, DEALER_DOMAIN_HEADER, type TenantContext } from '@/lib/tenant'
@@ -52,10 +52,24 @@ async function route (req: NextRequest): Promise<{ res: NextResponse; indexable:
 
   // 2) SITIO DE DEALER (storefront)
   const tenant = await new ResolveDealerMiddleware().resolve(req)
-  if (!tenant) {
-    return { res: NextResponse.rewrite(new URL('/not-available', req.url)), indexable: false }
-  }
+  if (!tenant) return { res: await unavailableRoute(req, host), indexable: false }
   return { res: await dealerRoute(req, pathname, host, tenant), indexable: canIndexDealer(host, tenant.allowIndexing) }
+}
+
+/**
+ * Dominio sin dealer activo. Distingue dos casos que antes respondían 200:
+ *   - Dealer suspendido -> 503 + Retry-After: es temporal; Google conserva lo
+ *     indexado y vuelve después, en vez de reemplazar sus fichas.
+ *   - Dominio que no es de nadie -> 404.
+ * La misma página explica cada caso (?motivo=).
+ */
+async function unavailableRoute (req: NextRequest, host: string): Promise<NextResponse> {
+  const suspended = await isSuspendedDealerDomain(host)
+  const url = new URL('/not-available', req.url)
+  if (suspended) url.searchParams.set('motivo', 'suspendido')
+  const res = NextResponse.rewrite(url, { status: suspended ? 503 : 404 })
+  if (suspended) res.headers.set('retry-after', '86400')
+  return res
 }
 
 /** vendra.com.mx: reescribe a /plataforma/* y deja pasar /admin y /api. */
